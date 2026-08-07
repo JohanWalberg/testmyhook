@@ -1,0 +1,63 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+  background: #FAFAFB;
+  color: #16161D;
+  -webkit-font-smoothing: antialiased;
+}
+input, select, textarea, button { font-family: inherit; }
+a { color: #6D4AFF; text-decoration: none; }
+a:hover { color: #5B36F0; text-decoration: underline; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #DEDEE6; border-radius: 8px; border: 3px solid #FAFAFB; }
+@keyframes flashIn { from { background: #F2EFFF; } to { background: transparent; } }
+@keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+/* Buttons — hover states mirror the prototype's style-hover attributes. */
+.btnPrimary {
+  background: #6D4AFF; color: #fff; border: 1px solid #6D4AFF; border-radius: 8px;
+  font-weight: 600; cursor: pointer;
+}
+.btnPrimary:hover { background: #5B36F0; }
+.btnSecondary {
+  background: #fff; color: #16161D; border: 1px solid #E0E0E8; border-radius: 8px;
+  font-weight: 600; cursor: pointer;
+}
+.btnSecondary:hover { border-color: #C9C9D6; }
+.btnGhost {
+  background: transparent; color: #6B6B7B; border: 1px solid #E7E7EC; border-radius: 7px;
+  font-weight: 600; cursor: pointer;
+}
+.btnGhost:hover { color: #16161D; border-color: #C9C9D6; }
+.btnDangerOutline {
+  background: #fff; border: 1px solid #F2D4D4; color: #DC2626; border-radius: 7px;
+  font-weight: 600; cursor: pointer;
+}
+.btnDangerOutline:hover { background: #FEF2F2; }
+.btnDanger {
+  background: #DC2626; color: #fff; border: none; border-radius: 8px;
+  font-weight: 600; cursor: pointer;
+}
+.btnDanger:hover { background: #B91C1C; }
+
+.linkMuted { cursor: pointer; color: #6B6B7B; }
+.linkMuted:hover { color: #16161D; }
+.linkHoverPurple { cursor: pointer; }
+.linkHoverPurple:hover { color: #6D4AFF !important; }
+.linkDanger { cursor: pointer; }
+.linkDanger:hover { color: #DC2626 !important; }
+.closeX { cursor: pointer; }
+.closeX:hover { color: #16161D !important; }
+
+.tmInput {
+  border: 1px solid #E7E7EC; border-radius: 8px; outline: none; background: #fff;
+}
+.tmInput:focus { border-color: #C4B5FF; }
+.tmInputGray { background: #FCFCFD; }
+.tmInputGray:focus { background: #fff; }
+.tmInput:disabled { color: #9A9AAB; background: #FCFCFD; }
+
+.flashRow { animation: flashIn 1.2s ease-out; }

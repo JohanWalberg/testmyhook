@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Instrument Sans', system-ui, sans-serif; background: #FAFAFB; color: #16161D; -webkit-font-smoothing: antialiased; }
+  input, select, textarea, button { font-family: inherit; }
+  a { color: #6D4AFF; text-decoration: none; }
+  a:hover { color: #5B36F0; text-decoration: underline; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #DEDEE6; border-radius: 8px; border: 3px solid #FAFAFB; }
+  @keyframes flashIn { from { background: #F2EFFF; } to { background: transparent; } }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+</style>
+</helmet>
+
+<div style="min-height: 100vh; background: #FAFAFB;">
+
+  <sc-if value="{{ isLanding }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <header style="position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,0.86); backdrop-filter: blur(8px); border-bottom: 1px solid #E7E7EC;">
+        <div style="max-width: 1120px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; gap: 28px;">
+          <div style="display: flex; align-items: center; gap: 9px; margin-right: auto;">
+            <div style="width: 22px; height: 22px; border-radius: 6px; background: #6D4AFF; display: flex; align-items: center; justify-content: center; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600;">/h</div>
+            <span style="font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">TestMyHook</span>
+          </div>
+          <nav style="display: flex; align-items: center; gap: 22px; font-size: 14px; color: #6B6B7B;">
+            <span style="cursor: pointer;" style-hover="color: #16161D">Documentation</span>
+            <span style="cursor: pointer;" style-hover="color: #16161D">GitHub</span>
+            <span onClick="{{ toggleAuth }}" style="cursor: pointer;" style-hover="color: #16161D">{{ authLabel }}</span>
+          </nav>
+          <button onClick="{{ openCreate }}" style="background: #6D4AFF; color: #fff; border: 1px solid #6D4AFF; border-radius: 8px; padding: 9px 15px; font-size: 14px; font-weight: 600; cursor: pointer;" style-hover="background: #5B36F0">Create webhook URL</button>
+        </div>
+      </header>
+
+      <section style="max-width: 1120px; margin: 0 auto; padding: 96px 24px 72px; display: flex; flex-wrap: wrap; gap: 56px; align-items: center;">
+        <div style="flex: 1 1 380px; min-width: 300px;">
+          <div style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 11px; border: 1px solid #DDD5FF; background: #F5F2FF; border-radius: 999px; font-size: 12.5px; color: #5B36F0; font-weight: 500; margin-bottom: 22px;">
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: #6D4AFF; display: block;"></span>
+            No account required
+          </div>
+          <h1 style="margin: 0 0 18px; font-size: 52px; line-height: 1.06; letter-spacing: -0.035em; font-weight: 600; text-wrap: balance;">Test, inspect and debug webhooks instantly.</h1>
+          <p style="margin: 0 0 30px; font-size: 18px; line-height: 1.55; color: #6B6B7B; max-width: 30em; text-wrap: pretty;">Generate a temporary callback URL, send a webhook to it and inspect the full payload in real time.</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+            <button onClick="{{ openCreate }}" style="background: #6D4AFF; color: #fff; border: 1px solid #6D4AFF; border-radius: 9px; padding: 13px 22px; font-size: 15px; font-weight: 600; cursor: pointer;" style-hover="background: #5B36F0">Create webhook URL</button>
+            <button onClick="{{ goInbox }}" style="background: #fff; color: #16161D; border: 1px solid #E0E0E8; border-radius: 9px; padding: 13px 22px; font-size: 15px; font-weight: 600; cursor: pointer;" style-hover="border-color: #C9C9D6">View example</button>
+          </div>
+        </div>
+
+        <div style="flex: 1 1 420px; min-width: 300px;">
+          <div style="background: #fff; border: 1px solid #E7E7EC; border-radius: 12px; box-shadow: 0 12px 40px -18px rgba(22,22,29,0.22); overflow: hidden;">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1px solid #EFEFF3; background: #FCFCFD;">
+              <span style="width: 9px; height: 9px; border-radius: 50%; background: #E4E4EA; display: block;"></span>
+              <span style="width: 9px; height: 9px; border-radius: 50%; background: #E4E4EA; display: block;"></span>
+              <span style="flex: 1;"></span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #9A9AAB;">inbox</span>
+            </div>
+            <div style="padding: 14px; border-bottom: 1px solid #EFEFF3; display: flex; align-items: center; gap: 10px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #16161D; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">https://testmyhook.dev/h/abc123xyz</span>
+              <span style="margin-left: auto; font-size: 11.5px; font-weight: 600; color: #6B6B7B; border: 1px solid #E7E7EC; border-radius: 6px; padding: 3px 8px;">Copy</span>
+            </div>
+            <div style="padding: 12px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #EFEFF3; background: #FCFCFD;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: #15803D; background: #ECFDF3; border: 1px solid #CFF0DC; border-radius: 5px; padding: 2px 7px;">POST</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #6B6B7B;">23:42:16</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #9A9AAB;">application/json</span>
+              <span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; font-weight: 600; color: #15803D; background: #ECFDF3; border-radius: 5px; padding: 2px 7px;">200 OK</span>
+            </div>
+            <div style="padding: 14px 16px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.75; white-space: pre; overflow-x: auto;"><span style="color: #9A9AAB;">{</span>
+  <span style="color: #5B36F0;">"id"</span><span style="color: #9A9AAB;">: </span><span style="color: #0F766E;">"evt_8f31a2"</span><span style="color: #9A9AAB;">,</span>
+  <span style="color: #5B36F0;">"event"</span><span style="color: #9A9AAB;">: </span><span style="color: #0F766E;">"payment.completed"</span><span style="color: #9A9AAB;">,</span>
+  <span style="color: #5B36F0;">"data"</span><span style="color: #9A9AAB;">: {</span>
+    <span style="color: #5B36F0;">"amount"</span><span style="color: #9A9AAB;">: </span><span style="color: #B45309;">1499</span><span style="color: #9A9AAB;">,</span>
+    <span style="color: #5B36F0;">"currency"</span><span style="color: #9A9AAB;">: </span><span style="color: #0F766E;">"SEK"</span>
+  <span style="color: #9A9AAB;">}
+}</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section style="max-width: 1120px; margin: 0 auto; padding: 24px 24px 88px;">
+        <h2 style="margin: 0 0 26px; font-size: 13px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: #9A9AAB;">How it works</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;">
+          <div style="background: #fff; border: 1px solid #E7E7EC; border-radius: 12px; padding: 24px;">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: #6D4AFF; margin-bottom: 14px;">01</div>
+            <h3 style="margin: 0 0 8px; font-size: 17px; font-weight: 600;">Create a URL</h3>
+            <p style="margin: 0; font-size: 14.5px; line-height: 1.6; color: #6B6B7B;">Generate a unique callback endpoint.</p>
+          </div>
+          <div style="background: #fff; border: 1px solid #E7E7EC; border-radius: 12px; padding: 24px;">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: #6D4AFF; margin-bottom: 14px;">02</div>
+            <h3 style="margin: 0 0 8px; font-size: 17px; font-weight: 600;">Send a webhook</h3>
+            <p style="margin: 0; font-size: 14.5px; line-height: 1.6; color: #6B6B7B;">Use the URL in any service, integration or application.</p>
+          </div>
+          <div style="background: #fff; border: 1px solid #E7E7EC; border-radius: 12px; padding: 24px;">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: #6D4AFF; margin-bottom: 14px;">03</div>
+            <h3 style="margin: 0 0 8px; font-size: 17px; font-weight: 600;">Inspect the payload</h3>
+            <p style="margin: 0; font-size: 14.5px; line-height: 1.6; color: #6B6B7B;">View headers, query parameters and request body instantly.</p>
+          </div>
+        </div>
+      </section>
+
+      <section style="border-top: 1px solid #E7E7EC; background: #fff;">
+        <div style="max-width: 1120px; margin: 0 auto; padding: 72px 24px;">
+          <h2 style="margin: 0 0 30px; font-size: 13px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: #9A9AAB;">Features</h2>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2px; background: #EFEFF3; border: 1px solid #EFEFF3; border-radius: 12px; overflow: hidden;">
+            <sc-for list="{{ features }}" as="f" hint-placeholder-count="9">
+              <div style="background: #fff; padding: 22px 24px;">
+                <h3 style="margin: 0 0 6px; font-size: 15px; font-weight: 600;">{{ f.title }}</h3>
+                <p style="margin: 0; font-size: 14px; line-height: 1.55; color: #6B6B7B;">{{ f.desc }}</p>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </section>
+
+      <section style="max-width: 1120px; margin: 0 auto; padding: 80px 24px;">
+        <div style="background: #16161D; border-radius: 14px; padding: 44px 40px; display: flex; flex-wrap: wrap; gap: 28px; align-items: center;">
+          <div style="flex: 1 1 340px;">
+            <h2 style="margin: 0 0 10px; font-size: 26px; font-weight: 600; letter-spacing: -0.02em; color: #fff;">Ready in one click.</h2>
+            <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #A2A2B4;">No signup, no configuration. Endpoints expire automatically.</p>
+          </div>
+          <button onClick="{{ openCreate }}" style="background: #6D4AFF; color: #fff; border: none; border-radius: 9px; padding: 13px 22px; font-size: 15px; font-weight: 600; cursor: pointer;" style-hover="background: #5B36F0">Create webhook URL</button>
+        </div>
+      </section>
+
+      <footer style="border-top: 1px solid #E7E7EC; background: #fff;">
+        <div style="max-width: 1120px; margin: 0 auto; padding: 28px 24px; display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
+          <span style="font-size: 13.5px; color: #9A9AAB;">© 2026 TestMyHook</span>
+          <div style="margin-left: auto; display: flex; flex-wrap: wrap; gap: 22px; font-size: 13.5px; color: #6B6B7B;">
+            <span style="cursor: pointer;" style-hover="color: #16161D">Documentation</span>
+            <span style="cursor: pointer;" style-hover="color: #16161D">Privacy</span>
+            <span style="cursor: pointer;" style-hover="color: #16161D">Terms</span>
+            <span style="cursor: pointer;" style-hover="color: #16161D">GitHub</span>
+            <span style="cursor: pointer;" style-hover="color: #16161D">Status</span>
+            <span style="cursor: pointer;" style-hover="color: #16161D">Contact</span>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isInbox }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <header style="position: sticky; top: 0; z-index: 20; background: #fff; border-bottom: 1px solid #E7E7EC;">
+        <div style="padding: 11px 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+          <div onClick="{{ goLanding }}" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <div style="width: 20px; height: 20px; border-radius: 5px; background: #6D4AFF; display: flex; align-items: center; justify-content: center; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600;">/h</div>
+            <span style="font-size: 14.5px; font-weight: 600;">TestMyHook</span>
+          </div>
+          <div style="width: 1px; height: 20px; background: #E7E7EC;"></div>
+          <span style="font-size: 14px; font-weight: 500;">{{ endpointName }}</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; border: 1px solid {{ statusBorder }}; background: {{ statusTint }}; color: {{ statusColor }};">{{ statusLabel }}</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #9A9AAB;">{{ expiryLabel }}</span>
+          <div style="margin-left: auto; display: flex; align-items: center; gap: 16px; font-size: 13.5px; color: #6B6B7B;">
+            <span onClick="{{ openSettings }}" style="cursor: pointer;" style-hover="color: #16161D">Settings</span>
+            <span style="cursor: pointer;" style-hover="color: #16161D">Documentation</span>
+            <sc-if value="{{ signedIn }}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span onClick="{{ goHistory }}" style="cursor: pointer;" style-hover="color: #16161D">History</span>
+                <div onClick="{{ toggleAuth }}" style="width: 27px; height: 27px; border-radius: 50%; background: #F2EFFF; border: 1px solid #DDD5FF; color: #5B36F0; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; cursor: pointer;">DK</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ signedOut }}" hint-placeholder-val="{{ false }}">
+              <span onClick="{{ toggleAuth }}" style="cursor: pointer; font-weight: 600; color: #16161D;">Sign in</span>
+            </sc-if>
+          </div>
+        </div>
+      </header>
+
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 20px; background: #F5F2FF; border-bottom: 1px solid #E9E3FF;">
+        <span style="font-size: 11.5px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #7C6BC9;">Demo state</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+          <sc-for list="{{ demoStates }}" as="d" hint-placeholder-count="6">
+            <span onClick="{{ d.onClick }}" style="{{ d.style }}">{{ d.label }}</span>
+          </sc-for>
+        </div>
+        <button onClick="{{ simulate }}" style="margin-left: auto; background: #fff; border: 1px solid #DDD5FF; color: #5B36F0; border-radius: 7px; padding: 5px 11px; font-size: 12.5px; font-weight: 600; cursor: pointer;" style-hover="background: #EFEBFF">Simulate incoming request</button>
+      </div>
+
+      <main style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+
+        <sc-if value="{{ showBanner }}" hint-placeholder-val="{{ false }}">
+          <div style="border: 1px solid {{ bannerBorder }}; background: {{ bannerTint }}; border-radius: 10px; padding: 14px 16px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center;">
+            <div style="flex: 1 1 320px;">
+              <div style="font-size: 14.5px; font-weight: 600; color: {{ bannerColor }}; margin-bottom: 3px;">{{ bannerTitle }}</div>
+              <div style="font-size: 13.5px; line-height: 1.5; color: #6B6B7B;">{{ bannerBody }}</div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <sc-for list="{{ bannerActions }}" as="a" hint-placeholder-count="2">
+                <button onClick="{{ a.onClick }}" style="background: #fff; border: 1px solid #E0E0E8; border-radius: 7px; padding: 7px 12px; font-size: 13px; font-weight: 600; color: #16161D; cursor: pointer;" style-hover="border-color: #C9C9D6">{{ a.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <section style="background: #fff; border: 1px solid #E7E7EC; border-radius: 12px;">
+          <div style="padding: 20px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; border-bottom: 1px solid #F1F1F5;">
+            <div style="flex: 1 1 340px; min-width: 0;">
+              <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #9A9AAB; margin-bottom: 8px;">Callback URL</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 19px; font-weight: 500; letter-spacing: -0.01em; overflow-wrap: anywhere;">{{ url }}</div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button onClick="{{ copyUrl }}" style="background: #6D4AFF; color: #fff; border: 1px solid #6D4AFF; border-radius: 8px; padding: 9px 16px; font-size: 13.5px; font-weight: 600; cursor: pointer;" style-hover="background: #5B36F0">Copy URL</button>
+              <button onClick="{{ regenerate }}" style="background: #fff; color: #16161D; border: 1px solid #E0E0E8; border-radius: 8px; padding: 9px 14px; font-size: 13.5px; font-weight: 600; cursor: pointer;" style-hover="border-color: #C9C9D6">Regenerate</button>
+              <button onClick="{{ openQr }}" style="background: #fff; color: #16161D; border: 1px solid #E0E0E8; border-radius: 8px; padding: 9px 14px; font-size: 13.5px; font-weight: 600; cursor: pointer;" style-hover="border-color: #C9C9D6">QR code</button>
+            </div>
+          </div>
+
+          <div style="padding: 14px 20px; display: flex; flex-wrap: wrap; gap: 22px; align-items: center; border-bottom: 1px solid #F1F1F5; background: #FCFCFD;">
+            <div style="display: flex; align-items: center; gap: 7px; font-size: 13px; color: #6B6B7B;">
+              <span style="width: 7px; height: 7px; border-radius: 50%; background: {{ statusColor }}; display: block;"></span>
+              <span style="color: #16161D; font-weight: 500;">{{ statusLabel }}</span>
+            </div>
+            <div style="font-size: 13px; color: #6B6B7B; white-space: nowrap;">Expires <span style="color: #16161D; font-weight: 500;">{{ expiryLabel }}</span></div>
+            <div style="font-size: 13px; color: #6B6B7B;">Requests <span style="color: #16161D; font-weight: 500;">{{ countLabel }}</span></div>
+            <div style="margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap;">
+              <button onClick="{{ clearAll }}" style="background: transparent; color: #6B6B7B; border: 1px solid #E7E7EC; border-radius: 7px; padding: 6px 11px; font-size: 12.5px; font-weight: 600; cursor: pointer;" style-hover="color: #16161D; border-color: #C9C9D6">Clear requests</button>
+              <button onClick="{{ togglePause }}" style="background: transparent; color: #6B6B7B; border: 1px solid #E7E7EC; border-radius: 7px; padding: 6px 11px; font-size: 12.5px; font-weight: 600; cursor: pointer;" style-hover="color: #16161D; border-color: #C9C9D6">{{ pauseLabel }}</button>
+              <button onClick="{{ openSettings }}" style="background: transparent; color: #6B6B7B; border: 1px solid #E7E7EC; border-radius: 7px; padding: 6px 11px; font-size: 12.5px; font-weight: 600; cursor: pointer;" style-hover="color: #16161D; border-color: #C9C9D6">Endpoint settings</button>
+            </div>
+          </div>
+
+          <div style="padding: 18px 20px; display: flex; flex-wrap: wrap; gap: 20px;">
+            <div style="flex: 1 1 320px; min-width: 0;">
+              <p style="margin: 0 0 12px; font-size: 14px; line-height: 1.55; color: #16161D; font-weight: 500;">Send any HTTP request to this URL. Incoming requests will appear below in real time.</p>
+              <div style="border: 1px solid #E7E7EC; border-radius: 9px; background: #FCFCFD; overflow: hidden;">
+                <div style="display: flex; align-items: center; padding: 7px 12px; border-bottom: 1px solid #F1F1F5;">
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #9A9AAB;">bash</span>
+                  <span onClick="{{ copyCurl }}" style="margin-left: auto; font-size: 12px; font-weight: 600; color: #6B6B7B; cursor: pointer;" style-hover="color: #6D4AFF">Copy cURL example</span>
+                </div>
+                <div style="padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.7; color: #16161D; overflow-x: auto; white-space: pre;">curl -X POST https://testmyhook.dev/h/abc123xyz \
+  -H <span style="color: #0F766E;">"Content-Type: application/json"</span> \
+  -d <span style="color: #0F766E;">'{"event":"payment.completed"}'</span></div>
+              </div>
+            </div>
+            <div style="flex: 0 1 320px; min-width: 260px; border: 1px solid #F0E9D8; background: #FDFBF4; border-radius: 9px; padding: 14px 16px;">
+              <div style="font-size: 13px; font-weight: 600; color: #8A6D1F; margin-bottom: 6px;">Privacy notice</div>
+              <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #6B6B7B;">Avoid sending passwords, production secrets or sensitive personal data. Temporary endpoints and captured requests are automatically deleted.</p>
+            </div>
+          </div>
+        </section>
+
+        <section style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: {{ splitWrap }};">
+
+          <sc-if value="{{ showList }}" hint-placeholder-val="{{ true }}">
+            <div style="flex: 0 0 {{ listWidth }}; width: {{ listWidth }}; max-width: 100%; background: #fff; border: 1px solid #E7E7EC; border-radius: 12px; overflow: hidden;">
+              <div style="padding: 12px; border-bottom: 1px solid #F1F1F5; display: flex; flex-direction: column; gap: 10px;">
+                <input value="{{ search }}" onChange="{{ onSearch }}" placeholder="Search requests" style="width: 100%; border: 1px solid #E7E7EC; border-radius: 8px; padding: 8px 11px; font-size: 13.5px; outline: none; background: #FCFCFD;" style-focus="border-color: #C4B5FF; background: #fff" />
+                <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                  <sc-for list="{{ methodChips }}" as="c" hint-placeholder-count="6">
+                    <span onClick="{{ c.onClick }}" style="{{ c.style }}">{{ c.label }}</span>
+                  </sc-for>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <span onClick="{{ toggleAutoScroll }}" style="display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: #6B6B7B; cursor: pointer;">
+                    <span style="width: 28px; height: 16px; border-radius: 999px; background: {{ autoScrollBg }}; position: relative; display: block; transition: background 120ms;">
+                      <span style="position: absolute; top: 2px; left: {{ autoScrollX }}; width: 12px; height: 12px; border-radius: 50%; background: #fff; transition: left 120ms;"></span>
+                    </span>
+                    Auto-scroll
+                  </span>
+                  <span onClick="{{ clearAll }}" style="margin-left: auto; font-size: 12.5px; font-weight: 600; color: #9A9AAB; cursor: pointer;" style-hover="color: #DC2626">Clear all</span>
+                </div>
+              </div>
+
+              <sc-if value="{{ hasRequests }}" hint-placeholder-val="{{ true }}">
+                <div style="max-height: 620px; overflow-y: auto;">
+                  <sc-for list="{{ list }}" as="r" hint-placeholder-count="5">
+                    <div onClick="{{ r.onClick }}" style="{{ r.rowStyle }}">
+                      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 600; letter-spacing: 0.03em; padding: 2px 6px; border-radius: 4px; color: {{ r.mColor }}; background: {{ r.mTint }};">{{ r.method }}</span>
+                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #6B6B7B;">{{ r.time }}</span>
+                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #9A9AAB; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ r.ctype }}</span>
+                        <span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: {{ r.sColor }};">{{ r.status }}</span>
+                      </div>
+                      <div style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #16161D; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 5px;">{{ r.preview }}</div>
+                      <div style="display: flex; align-items: center; gap: 10px; font-size: 11.5px; color: #9A9AAB;">
+                        <span style="font-family: 'JetBrains Mono', monospace;">{{ r.ip }}</span>
+                        <span>{{ r.size }}</span>
+                        <sc-if value="{{ r.isNew }}" hint-placeholder-val="{{ false }}">
+                          <span style="margin-left: auto; font-size: 10.5px; font-weight: 600; color: #5B36F0; background: #F2EFFF; border-radius: 4px; padding: 1px 6px;">NEW</span>
+                        </sc-if>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ noRequests }}" hint-placeholder-val="{{ false }}">
+                <div style="padding: 48px 24px; text-align: center;">
+                  <div style="width: 34px; height: 34px; margin: 0 auto 14px; border-radius: 50%; border: 2px dashed #DDD5FF;"></div>
+                  <div style="font-size: 15px; font-weight: 600; margin-bottom: 6px;">Waiting for your first webhook</div>
+                  <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #6B6B7B;">Send a request to your callback URL. It will appear here instantly.</p>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showDetail }}" hint-placeholder-val="{{ true }}">
+            <div style="flex: 1 1 420px; min-width: 0; background: #fff; border: 1px solid #E7E7EC; border-radius: 12px; overflow: hidden;">
+
+              <sc-if value="{{ hasSelection }}" hint-placeholder-val="{{ true }}">
+                <div>
+                  <div style="padding: 18px 20px; border-bottom: 1px solid #F1F1F5;">
+                    <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+                      <span onClick="{{ backToList }}" style="display: inline-block; margin-bottom: 12px; font-size: 13px; font-weight: 600; color: #6D4AFF; cursor: pointer;">← All requests</span>
+                    </sc-if>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;">
+                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 5px; color: {{ sel.mColor }}; background: {{ sel.mTint }};">{{ sel.method }}</span>
+                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 500; overflow-wrap: anywhere;">{{ sel.path }}</span>
+                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: {{ sel.sColor }}; background: {{ sel.sTint }}; border-radius: 5px; padding: 3px 8px;">{{ sel.statusFull }}</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 20px;">
+                      <div>
+                        <div style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #9A9AAB; margin-bottom: 3px;">Received</div>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">{{ sel.received }}</div>
+                      </div>
+                      <div>
+                        <div style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #9A9AAB; margin-bottom: 3px;">Duration</div>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">{{ sel.duration }}</div>
+                      </div>
+                      <div>
+                        <div style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #9A9AAB; margin-bottom: 3px;">Size</div>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">{{ sel.size }}</div>
+                      </div>
+                      <div>
+                        <div style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #9A9AAB; margin-bottom: 3px;">Source IP</div>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">{{ sel.ip }}</div>
+                      </div>
+                      <div style="grid-column: span 2;">
+                        <div style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #9A9AAB; margin-bottom: 3px;">User agent</div>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; overflow-wrap: anywhere;">{{ sel.ua }}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="padding: 12px 20px; border-bottom: 1px solid #F1F1F5; display: flex; gap: 8px; flex-wrap: wrap; background: #FCFCFD;">
+                    <button onClick="{{ copyRequest }}" style="background: #fff; border: 1px solid #E0E0E8; border-radius: 7px; padding: 7px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer;" style-hover="border-color: #C9C9D6">Copy request</button>
+                    <button onClick="{{ copyAsCurl }}" style="background: #fff; border: 1px solid #E0E0E8; border-radius: 7px; padding: 7px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer;" style-hover="border-color: #C9C9D6">Copy as cURL</button>
+                    <button onClick="{{ openReplay }}" style="background: #fff; border: 1px solid #E0E0E8; border-radius: 7px; padding: 7px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer;" style-hover="border-color: #C9C9D6">Replay</button>
+                    <button onClick="{{ download }}" style="background: #fff; border: 1px solid #E0E0E8; border-radius: 7px; padding: 7px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer;" style-hover="border-color: #C9C9D6">Download</button>
+                    <button onClick="{{ askDelete }}" style="margin-left: auto; background: #fff; border: 1px solid #F2D4D4; color: #DC2626; border-radius: 7px; padding: 7px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer;" style-hover="background: #FEF2F2">Delete</button>
+                  </div>
+
+                  <div style="display: flex; gap: 2px; padding: 0 20px; border-bottom: 1px solid #F1F1F5; overflow-x: auto;">
+                    <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+                      <span onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</span>
+                    </sc-for>
+                  </div>
+
+                  <sc-if value="{{ tabBody }}" hint-placeholder-val="{{ true }}">
+                    <div>
+                      <div style="padding: 12px 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #F5F5F8;">
+                        <div style="display: flex; background: #F4F4F7; border-radius: 7px; padding: 2px;">
+                          <sc-for list="{{ bodyModes }}" as="m" hint-placeholder-count="2">
+                            <span onClick="{{ m.onClick }}" style="{{ m.style }}">{{ m.label }}</span>
+                          </sc-for>
+                        </div>
+                        <input value="{{ bodySearch }}" onChange="{{ onBodySearch }}" placeholder="Search payload" style="flex: 0 1 200px; border: 1px solid #E7E7EC; border-radius: 7px; padding: 6px 10px; font-size: 12.5px; outline: none; background: #FCFCFD;" style-focus="border-color: #C4B5FF; background: #fff" />
+                        <span onClick="{{ toggleWrap }}" style="font-size: 12.5px; color: {{ wrapColor }}; cursor: pointer; font-weight: 500;">Wrap lines</span>
+                        <span onClick="{{ copyBody }}" style="margin-left: auto; font-size: 12.5px; font-weight: 600; color: #6B6B7B; cursor: pointer;" style-hover="color: #6D4AFF">Copy body</span>
+                      </div>
+
+                      <sc-if value="{{ sel.invalid }}" hint-placeholder-val="{{ false }}">
+                        <div style="margin: 14px 20px 0; border: 1px solid #F0E9D8; background: #FDFBF4; border-radius: 8px; padding: 10px 13px; font-size: 13px; color: #8A6D1F;">This payload is not valid JSON. Displaying raw content instead.</div>
+                      </sc-if>
+
+                      <sc-if value="{{ showPretty }}" hint-placeholder-val="{{ true }}">
+                        <div style="padding: 14px 20px 20px; overflow-x: auto;">
+                          <sc-for list="{{ bodyLines }}" as="l" hint-placeholder-count="12">
+                            <div style="display: flex; gap: 14px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.75; white-space: pre;">
+                              <span style="color: #C7C7D2; user-select: none; text-align: right; min-width: 22px;">{{ l.n }}</span>
+                              <span>{{ l.indent }}<sc-for list="{{ l.parts }}" as="p" hint-placeholder-count="3"><span style="color: {{ p.c }};">{{ p.t }}</span></sc-for></span>
+                            </div>
+                          </sc-for>
+                        </div>
+                      </sc-if>
+
+                      <sc-if value="{{ showRawBody }}" hint-placeholder-val="{{ false }}">
+                        <div style="padding: 14px 20px 20px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.75; color: #16161D; white-space: {{ wrapMode }}; overflow-x: auto;">{{ rawBody }}</div>
+                      </sc-if>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{ tabHeaders }}" hint-placeholder-val="{{ false }}">
+                    <div style="padding: 8px 20px 20px;">
+                      <div style="display: flex; justify-content: flex-end; padding: 10px 0;">
+                        <span onClick="{{ toggleReveal }}" style="font-size: 12.5px; font-weight: 600; color: #6D4AFF; cursor: pointer;">{{ revealLabel }}</span>
+                      </div>
+                      <div style="border: 1px solid #EFEFF3; border-radius: 9px; overflow: hidden;">
+                        <sc-for list="{{ headers }}" as="h" hint-placeholder-count="6">
+                          <div style="display: grid; grid-template-columns: minmax(140px, 220px) 1fr; gap: 16px; padding: 10px 14px; border-bottom: 1px solid #F5F5F8; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;">
+                            <span style="color: #6B6B7B;">{{ h.name }}</span>
+                            <span style="color: #16161D; overflow-wrap: anywhere;">{{ h.shown }}</span>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{ tabQuery }}" hint-placeholder-val="{{ false }}">
+                    <div style="padding: 20px;">
+                      <div style="border: 1px solid #EFEFF3; border-radius: 9px; overflow: hidden;">
+                        <sc-for list="{{ query }}" as="q" hint-placeholder-count="2">
+                          <div style="display: grid; grid-template-columns: minmax(140px, 220px) 1fr; gap: 16px; padding: 10px 14px; border-bottom: 1px solid #F5F5F8; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;">
+                            <span style="color: #6B6B7B;">{{ q.k }}</span>
+                            <span style="color: #16161D; overflow-wrap: anywhere;">{{ q.v }}</span>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{ tabRaw }}" hint-placeholder-val="{{ false }}">
+                    <div style="padding: 20px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; color: #16161D;">{{ rawRequest }}</div>
+                  </sc-if>
+
+                  <sc-if value="{{ tabResponse }}" hint-placeholder-val="{{ false }}">
+                    <div style="padding: 20px; display: flex; flex-direction: column; gap: 18px;">
+                      <div style="display: flex; gap: 22px; flex-wrap: wrap; align-items: center;">
+                        <div>
+                          <div style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #9A9AAB; margin-bottom: 4px;">Status</div>
+                          <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: {{ sel.sColor }}; background: {{ sel.sTint }}; border-radius: 5px; padding: 3px 8px;">{{ sel.statusFull }}</span>
+                        </div>
+                        <div>
+                          <div style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #9A9AAB; margin-bottom: 4px;">Response time</div>
+                          <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">{{ sel.duration }}</div>
+                        </div>
+                        <button onClick="{{ openResponseSettings }}" style="margin-left: auto; background: #fff; border: 1px solid #E0E0E8; border-radius: 7px; padding: 7px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer;" style-hover="border-color: #C9C9D6">Edit custom response</button>
+                      </div>
+                      <div>
+                        <div style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #9A9AAB; margin-bottom: 8px;">Response headers</div>
+                        <div style="border: 1px solid #EFEFF3; border-radius: 9px; overflow: hidden;">
+                          <sc-for list="{{ responseHeaders }}" as="h" hint-placeholder-count="3">
+                            <div style="display: grid; grid-template-columns: minmax(140px, 220px) 1fr; gap: 16px; padding: 10px 14px; border-bottom: 1px solid #F5F5F8; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;">
+                              <span style="color: #6B6B7B;">{{ h.name }}</span>
+                              <span style="color: #16161D;">{{ h.value }}</span>
+                            </div>
+                          </sc-for>
+                        </div>
+                      </div>
+                      <div>
+                        <div style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #9A9AAB; margin-bottom: 8px;">Response body</div>
+                        <div style="border: 1px solid #EFEFF3; border-radius: 9px; padding: 12px 14px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.75; white-space: pre; background: #FCFCFD;">{{ responseBody }}</div>
+                      </div>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ noSelection }}" hint-placeholder-val="{{ false }}">
+                <div style="padding: 72px 30px; text-align: center;">
+                  <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">Waiting for your first webhook</div>
+                  <p style="margin: 0 auto 20px; max-width: 34em; font-size: 14px; line-height: 1.6; color: #6B6B7B;">Send a request to your callback URL. It will appear here instantly.</p>
+                  <div style="max-width: 520px; margin: 0 auto; border: 1px solid #E7E7EC; border-radius: 9px; background: #FCFCFD; padding: 12px 14px; text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.7; white-space: pre; overflow-x: auto;">curl -X POST https://testmyhook.dev/h/abc123xyz \
+  -H "Content-Type: application/json" \
+  -d '{"event":"payment.completed"}'</div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </section>
+      </main>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isHistory }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <header style="background: #fff; border-bottom: 1px solid #E7E7EC;">
+        <div style="max-width: 1000px; margin: 0 auto; padding: 13px 24px; display: flex; align-items: center; gap: 14px;">
+          <div onClick="{{ goLanding }}" style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-right: auto;">
+            <div style="width: 20px; height: 20px; border-radius: 5px; background: #6D4AFF; display: flex; align-items: center; justify-content: center; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600;">/h</div>
+            <span style="font-size: 14.5px; font-weight: 600;">TestMyHook</span>
+          </div>
+          <span onClick="{{ goInbox }}" style="font-size: 13.5px; color: #6B6B7B; cursor: pointer;" style-hover="color: #16161D">Inbox</span>
+          <button onClick="{{ openCreate }}" style="background: #6D4AFF; color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13.5px; font-weight: 600; cursor: pointer;" style-hover="background: #5B36F0">Create webhook URL</button>
+        </div>
+      </header>
+      <div style="max-width: 1000px; margin: 0 auto; padding: 32px 24px 64px;">
+        <h1 style="margin: 0 0 4px; font-size: 24px; font-weight: 600; letter-spacing: -0.02em;">Endpoints</h1>
+        <p style="margin: 0 0 22px; font-size: 14px; color: #6B6B7B;">Previous and active endpoints on your account.</p>
+        <div style="display: flex; gap: 4px; margin-bottom: 16px;">
+          <sc-for list="{{ historyFilters }}" as="f" hint-placeholder-count="3">
+            <span onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</span>
+          </sc-for>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <sc-for list="{{ endpoints }}" as="e" hint-placeholder-count="4">
+            <div style="background: #fff; border: 1px solid #E7E7EC; border-radius: 11px; padding: 16px 18px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center;">
+              <div style="flex: 1 1 260px; min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 6px;">
+                  <span style="font-size: 15px; font-weight: 600;">{{ e.name }}</span>
+                  <span style="font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; color: {{ e.color }}; background: {{ e.tint }};">{{ e.status }}</span>
+                </div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #6B6B7B; overflow-wrap: anywhere;">{{ e.url }}</div>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 14px; flex: 1 1 320px;">
+                <div>
+                  <div style="font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #9A9AAB; margin-bottom: 2px;">Created</div>
+                  <div style="font-size: 12.5px;">{{ e.created }}</div>
+                </div>
+                <div>
+                  <div style="font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #9A9AAB; margin-bottom: 2px;">Expires</div>
+                  <div style="font-size: 12.5px;">{{ e.expires }}</div>
+                </div>
+                <div>
+                  <div style="font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #9A9AAB; margin-bottom: 2px;">Requests</div>
+                  <div style="font-size: 12.5px;">{{ e.requests }}</div>
+                </div>
+                <div>
+                  <div style="font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #9A9AAB; margin-bottom: 2px;">Last received</div>
+                  <div style="font-size: 12.5px;">{{ e.last }}</div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button onClick="{{ goInbox }}" style="background: #fff; border: 1px solid #E0E0E8; border-radius: 7px; padding: 7px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer;" style-hover="border-color: #C9C9D6">Open</button>
+                <button onClick="{{ askDeleteEndpoint }}" style="background: #fff; border: 1px solid #F2D4D4; color: #DC2626; border-radius: 7px; padding: 7px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer;" style-hover="background: #FEF2F2">Delete</button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ modalOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeModal }}" style="position: fixed; inset: 0; z-index: 60; background: rgba(22,22,29,0.34); display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto;">
+      <div onClick="{{ stop }}" style="background: #fff; border-radius: 14px; width: 100%; max-width: {{ modalWidth }}; box-shadow: 0 24px 60px -20px rgba(22,22,29,0.35); overflow: hidden;">
+        <div style="padding: 18px 22px; border-bottom: 1px solid #F1F1F5; display: flex; align-items: center; gap: 12px;">
+          <div>
+            <div style="font-size: 16px; font-weight: 600;">{{ modalTitle }}</div>
+            <div style="font-size: 13px; color: #6B6B7B; margin-top: 2px;">{{ modalSubtitle }}</div>
+          </div>
+          <span onClick="{{ closeModal }}" style="margin-left: auto; font-size: 18px; color: #9A9AAB; cursor: pointer; line-height: 1;" style-hover="color: #16161D">×</span>
+        </div>
+
+        <sc-if value="{{ mCreate }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <div style="padding: 22px; display: flex; flex-direction: column; gap: 18px;">
+              <div>
+                <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Endpoint name <span style="color: #9A9AAB; font-weight: 400;">optional</span></label>
+                <input placeholder="Payments sandbox" style="width: 100%; border: 1px solid #E7E7EC; border-radius: 8px; padding: 10px 12px; font-size: 14px; outline: none;" style-focus="border-color: #C4B5FF" />
+              </div>
+              <div>
+                <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Expiration</label>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                  <sc-for list="{{ expiryOptions }}" as="o" hint-placeholder-count="4">
+                    <span onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</span>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+                <div>
+                  <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Maximum stored requests</label>
+                  <input value="100" style="width: 100%; border: 1px solid #E7E7EC; border-radius: 8px; padding: 10px 12px; font-size: 14px; font-family: 'JetBrains Mono', monospace; outline: none;" style-focus="border-color: #C4B5FF" />
+                </div>
+                <div>
+                  <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Custom response status</label>
+                  <input value="200" style="width: 100%; border: 1px solid #E7E7EC; border-radius: 8px; padding: 10px 12px; font-size: 14px; font-family: 'JetBrains Mono', monospace; outline: none;" style-focus="border-color: #C4B5FF" />
+                </div>
+              </div>
+              <div>
+                <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Custom response body <span style="color: #9A9AAB; font-weight: 400;">optional</span></label>
+                <textarea rows="3" style="width: 100%; border: 1px solid #E7E7EC; border-radius: 8px; padding: 10px 12px; font-size: 13px; font-family: 'JetBrains Mono', monospace; line-height: 1.6; outline: none; resize: vertical;" style-focus="border-color: #C4B5FF">{"received": true}</textarea>
+              </div>
+            </div>
+            <div style="padding: 16px 22px; border-top: 1px solid #F1F1F5; background: #FCFCFD; display: flex; gap: 10px; align-items: center;">
+              <span style="font-size: 12.5px; color: #9A9AAB;">Defaults work for most cases.</span>
+              <button onClick="{{ closeModal }}" style="margin-left: auto; background: #fff; border: 1px solid #E0E0E8; border-radius: 8px; padding: 9px 15px; font-size: 13.5px; font-weight: 600; cursor: pointer;">Cancel</button>
+              <button onClick="{{ createEndpoint }}" style="background: #6D4AFF; color: #fff; border: none; border-radius: 8px; padding: 9px 17px; font-size: 13.5px; font-weight: 600; cursor: pointer;" style-hover="background: #5B36F0">Create endpoint</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ mResponse }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <div style="padding: 22px; display: flex; flex-direction: column; gap: 18px;">
+              <div>
+                <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Presets</label>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                  <sc-for list="{{ statusPresets }}" as="p" hint-placeholder-count="7">
+                    <span onClick="{{ p.onClick }}" style="{{ p.style }}">{{ p.label }}</span>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+                <div>
+                  <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">HTTP response status</label>
+                  <input value="{{ respStatus }}" onChange="{{ onRespStatus }}" style="width: 100%; border: 1px solid #E7E7EC; border-radius: 8px; padding: 10px 12px; font-size: 14px; font-family: 'JetBrains Mono', monospace; outline: none;" style-focus="border-color: #C4B5FF" />
+                </div>
+                <div>
+                  <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Response content type</label>
+                  <input value="application/json" style="width: 100%; border: 1px solid #E7E7EC; border-radius: 8px; padding: 10px 12px; font-size: 14px; font-family: 'JetBrains Mono', monospace; outline: none;" style-focus="border-color: #C4B5FF" />
+                </div>
+                <div>
+                  <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Artificial delay <span style="color: #9A9AAB; font-weight: 400;">optional</span></label>
+                  <input value="0 ms" style="width: 100%; border: 1px solid #E7E7EC; border-radius: 8px; padding: 10px 12px; font-size: 14px; font-family: 'JetBrains Mono', monospace; outline: none;" style-focus="border-color: #C4B5FF" />
+                </div>
+              </div>
+              <div>
+                <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Response body</label>
+                <textarea rows="4" value="{{ respBody }}" onChange="{{ onRespBody }}" style="width: 100%; border: 1px solid #E7E7EC; border-radius: 8px; padding: 10px 12px; font-size: 13px; font-family: 'JetBrains Mono', monospace; line-height: 1.7; outline: none; resize: vertical;" style-focus="border-color: #C4B5FF"></textarea>
+              </div>
+              <div>
+                <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Custom response headers</label>
+                <div style="border: 1px solid #EFEFF3; border-radius: 9px; overflow: hidden;">
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 10px 14px; border-bottom: 1px solid #F5F5F8; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;"><span style="color: #6B6B7B;">x-testmyhook-id</span><span>abc123xyz</span></div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 10px 14px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;"><span style="color: #6B6B7B;">cache-control</span><span>no-store</span></div>
+                </div>
+              </div>
+              <div>
+                <div style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #9A9AAB; margin-bottom: 8px;">Preview</div>
+                <div style="border: 1px solid #E7E7EC; border-radius: 9px; background: #FCFCFD; overflow: hidden;">
+                  <div style="padding: 10px 14px; border-bottom: 1px solid #F1F1F5; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;">HTTP/1.1 {{ respStatusFull }}</div>
+                  <div style="padding: 12px 14px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.75; white-space: pre;">{{ respBody }}</div>
+                </div>
+              </div>
+            </div>
+            <div style="padding: 16px 22px; border-top: 1px solid #F1F1F5; background: #FCFCFD; display: flex; gap: 10px; justify-content: flex-end;">
+              <button onClick="{{ closeModal }}" style="background: #fff; border: 1px solid #E0E0E8; border-radius: 8px; padding: 9px 15px; font-size: 13.5px; font-weight: 600; cursor: pointer;">Cancel</button>
+              <button onClick="{{ saveResponse }}" style="background: #6D4AFF; color: #fff; border: none; border-radius: 8px; padding: 9px 17px; font-size: 13.5px; font-weight: 600; cursor: pointer;" style-hover="background: #5B36F0">Save response</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ mSettings }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <div style="padding: 22px; display: flex; flex-direction: column; gap: 18px;">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                <div>
+                  <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Endpoint name</label>
+                  <input value="Payments sandbox" style="width: 100%; border: 1px solid #E7E7EC; border-radius: 8px; padding: 10px 12px; font-size: 14px; outline: none;" style-focus="border-color: #C4B5FF" />
+                </div>
+                <div>
+                  <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Expiration date</label>
+                  <input value="2026-08-07 23:42" style="width: 100%; border: 1px solid #E7E7EC; border-radius: 8px; padding: 10px 12px; font-size: 14px; font-family: 'JetBrains Mono', monospace; outline: none;" style-focus="border-color: #C4B5FF" />
+                </div>
+                <div>
+                  <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Request retention</label>
+                  <input value="24 hours" style="width: 100%; border: 1px solid #E7E7EC; border-radius: 8px; padding: 10px 12px; font-size: 14px; outline: none;" style-focus="border-color: #C4B5FF" />
+                </div>
+                <div>
+                  <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Maximum body size</label>
+                  <input value="1 MB" style="width: 100%; border: 1px solid #E7E7EC; border-radius: 8px; padding: 10px 12px; font-size: 14px; outline: none;" style-focus="border-color: #C4B5FF" />
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 14px; padding: 13px 15px; border: 1px solid #EFEFF3; border-radius: 9px;">
+                <div style="flex: 1;">
+                  <div style="font-size: 13.5px; font-weight: 600;">Endpoint status</div>
+                  <div style="font-size: 12.5px; color: #6B6B7B; margin-top: 2px;">Paused endpoints will not store incoming requests.</div>
+                </div>
+                <span onClick="{{ togglePause }}" style="font-size: 12.5px; font-weight: 600; color: #6D4AFF; cursor: pointer;">{{ pauseLabel }}</span>
+              </div>
+              <div>
+                <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Secret token</label>
+                <div style="display: flex; gap: 8px;">
+                  <input value="whsec_••••••••••••••••" style="flex: 1; border: 1px solid #E7E7EC; border-radius: 8px; padding: 10px 12px; font-size: 13px; font-family: 'JetBrains Mono', monospace; outline: none;" style-focus="border-color: #C4B5FF" />
+                  <button onClick="{{ copyToken }}" style="background: #fff; border: 1px solid #E0E0E8; border-radius: 8px; padding: 9px 14px; font-size: 13px; font-weight: 600; cursor: pointer;">Copy</button>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 14px; padding: 13px 15px; border: 1px solid #EFEFF3; border-radius: 9px;">
+                <div style="flex: 1;">
+                  <div style="font-size: 13.5px; font-weight: 600;">Request signature validation</div>
+                  <div style="font-size: 12.5px; color: #6B6B7B; margin-top: 2px;">Verify the x-webhook-signature header against the secret token.</div>
+                </div>
+                <span onClick="{{ toggleSig }}" style="width: 32px; height: 18px; border-radius: 999px; background: {{ sigBg }}; position: relative; display: block; cursor: pointer;">
+                  <span style="position: absolute; top: 2px; left: {{ sigX }}; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: left 120ms;"></span>
+                </span>
+              </div>
+              <div style="border: 1px solid #F2D4D4; background: #FEF6F6; border-radius: 10px; padding: 15px 16px;">
+                <div style="font-size: 13.5px; font-weight: 600; color: #B91C1C; margin-bottom: 4px;">Danger zone</div>
+                <p style="margin: 0 0 12px; font-size: 13px; line-height: 1.55; color: #6B6B7B;">Delete this endpoint and all captured requests. This action cannot be undone.</p>
+                <button onClick="{{ askDeleteEndpoint }}" style="background: #DC2626; color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer;" style-hover="background: #B91C1C">Delete endpoint</button>
+              </div>
+            </div>
+            <div style="padding: 16px 22px; border-top: 1px solid #F1F1F5; background: #FCFCFD; display: flex; gap: 10px; justify-content: flex-end;">
+              <button onClick="{{ closeModal }}" style="background: #fff; border: 1px solid #E0E0E8; border-radius: 8px; padding: 9px 15px; font-size: 13.5px; font-weight: 600; cursor: pointer;">Cancel</button>
+              <button onClick="{{ saveSettings }}" style="background: #6D4AFF; color: #fff; border: none; border-radius: 8px; padding: 9px 17px; font-size: 13.5px; font-weight: 600; cursor: pointer;" style-hover="background: #5B36F0">Save settings</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ mReplay }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <div style="padding: 22px; display: flex; flex-direction: column; gap: 18px;">
+              <div style="border: 1px solid #F0E9D8; background: #FDFBF4; border-radius: 9px; padding: 12px 14px; font-size: 13px; line-height: 1.55; color: #8A6D1F;">This request contains an authorization header and a signature. Replaying it will send those credentials to the destination URL.</div>
+              <div style="display: grid; grid-template-columns: 110px 1fr; gap: 10px;">
+                <select style="border: 1px solid #E7E7EC; border-radius: 8px; padding: 10px; font-size: 13.5px; font-family: 'JetBrains Mono', monospace; outline: none;">
+                  <option>POST</option>
+                  <option>GET</option>
+                  <option>PUT</option>
+                  <option>PATCH</option>
+                  <option>DELETE</option>
+                </select>
+                <input value="https://localhost:3000/webhooks/payments" style="width: 100%; border: 1px solid #E7E7EC; border-radius: 8px; padding: 10px 12px; font-size: 13.5px; font-family: 'JetBrains Mono', monospace; outline: none;" style-focus="border-color: #C4B5FF" />
+              </div>
+              <div>
+                <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Headers</label>
+                <div style="border: 1px solid #EFEFF3; border-radius: 9px; overflow: hidden;">
+                  <sc-for list="{{ headers }}" as="h" hint-placeholder-count="4">
+                    <div style="display: grid; grid-template-columns: minmax(120px, 200px) 1fr; gap: 14px; padding: 9px 13px; border-bottom: 1px solid #F5F5F8; font-family: 'JetBrains Mono', monospace; font-size: 12px;">
+                      <span style="color: #6B6B7B;">{{ h.name }}</span>
+                      <span style="overflow-wrap: anywhere;">{{ h.shown }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div>
+                <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Query parameters</label>
+                <div style="border: 1px solid #EFEFF3; border-radius: 9px; overflow: hidden;">
+                  <sc-for list="{{ query }}" as="q" hint-placeholder-count="2">
+                    <div style="display: grid; grid-template-columns: minmax(120px, 200px) 1fr; gap: 14px; padding: 9px 13px; border-bottom: 1px solid #F5F5F8; font-family: 'JetBrains Mono', monospace; font-size: 12px;">
+                      <span style="color: #6B6B7B;">{{ q.k }}</span><span>{{ q.v }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div>
+                <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Request body</label>
+                <textarea rows="5" style="width: 100%; border: 1px solid #E7E7EC; border-radius: 8px; padding: 10px 12px; font-size: 12.5px; font-family: 'JetBrains Mono', monospace; line-height: 1.7; outline: none; resize: vertical;" style-focus="border-color: #C4B5FF">{{ rawBody }}</textarea>
+              </div>
+              <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 13px; font-weight: 600;">Timeout</span>
+                  <input value="10s" style="width: 76px; border: 1px solid #E7E7EC; border-radius: 8px; padding: 7px 10px; font-size: 13px; font-family: 'JetBrains Mono', monospace; outline: none;" />
+                </div>
+                <span onClick="{{ toggleRedirects }}" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer;">
+                  <span style="width: 32px; height: 18px; border-radius: 999px; background: {{ redirBg }}; position: relative; display: block;">
+                    <span style="position: absolute; top: 2px; left: {{ redirX }}; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: left 120ms;"></span>
+                  </span>
+                  Follow redirects
+                </span>
+              </div>
+
+              <sc-if value="{{ replayResult }}" hint-placeholder-val="{{ false }}">
+                <div style="border: 1px solid {{ replayBorder }}; border-radius: 10px; overflow: hidden;">
+                  <div style="padding: 11px 14px; background: {{ replayTint }}; border-bottom: 1px solid {{ replayBorder }}; display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: {{ replayColor }};">{{ replayStatus }}</span>
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #6B6B7B;">{{ replayTime }}</span>
+                  </div>
+                  <div style="padding: 12px 14px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.75; white-space: pre-wrap; overflow-wrap: anywhere;">{{ replayBodyText }}</div>
+                </div>
+              </sc-if>
+            </div>
+            <div style="padding: 16px 22px; border-top: 1px solid #F1F1F5; background: #FCFCFD; display: flex; gap: 10px; align-items: center;">
+              <span onClick="{{ failReplay }}" style="font-size: 12.5px; color: #9A9AAB; cursor: pointer;" style-hover="color: #6B6B7B">Simulate failure</span>
+              <button onClick="{{ closeModal }}" style="margin-left: auto; background: #fff; border: 1px solid #E0E0E8; border-radius: 8px; padding: 9px 15px; font-size: 13.5px; font-weight: 600; cursor: pointer;">Cancel</button>
+              <button onClick="{{ sendReplay }}" style="background: #6D4AFF; color: #fff; border: none; border-radius: 8px; padding: 9px 17px; font-size: 13.5px; font-weight: 600; cursor: pointer;" style-hover="background: #5B36F0">Send request</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ mQr }}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 26px 22px 24px; text-align: center;">
+            <div style="width: 168px; height: 168px; margin: 0 auto 16px; border: 1px dashed #D8D8E0; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #9A9AAB; font-size: 12.5px; background: #FCFCFD;">QR code</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #6B6B7B; overflow-wrap: anywhere;">{{ url }}</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ mConfirm }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <div style="padding: 22px; font-size: 14px; line-height: 1.6; color: #6B6B7B;">{{ confirmBody }}</div>
+            <div style="padding: 16px 22px; border-top: 1px solid #F1F1F5; background: #FCFCFD; display: flex; gap: 10px; justify-content: flex-end;">
+              <button onClick="{{ closeModal }}" style="background: #fff; border: 1px solid #E0E0E8; border-radius: 8px; padding: 9px 15px; font-size: 13.5px; font-weight: 600; cursor: pointer;">Cancel</button>
+              <button onClick="{{ confirmDelete }}" style="background: #DC2626; color: #fff; border: none; border-radius: 8px; padding: 9px 17px; font-size: 13.5px; font-weight: 600; cursor: pointer;" style-hover="background: #B91C1C">Delete</button>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; right: 20px; bottom: 20px; z-index: 80; background: #16161D; color: #fff; border-radius: 10px; padding: 12px 16px; font-size: 13.5px; font-weight: 500; box-shadow: 0 14px 36px -14px rgba(22,22,29,0.5); animation: toastIn 160ms ease-out;">{{ toast }}</div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;initialView&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;landing&quot;,&quot;inbox&quot;,&quot;history&quot;],&quot;default&quot;:&quot;landing&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Demo&quot;},&quot;signedIn&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Demo&quot;}}">
+const COL = {
+  GET: ['#2563EB', '#EFF4FF'],
+  POST: ['#15803D', '#ECFDF3'],
+  PUT: ['#C2410C', '#FFF4EC'],
+  PATCH: ['#7C3AED', '#F5F1FF'],
+  DELETE: ['#DC2626', '#FEF2F2']
+};
+
+const REQUESTS = [
+  {
+    id: 'r1', method: 'POST', time: '23:42:16', received: '2026-08-06 23:42:16 +02:00',
+    ctype: 'application/json', preview: 'payment.completed', ip: '203.0.113.42', size: '412 B',
+    status: '200', statusFull: '200 OK', duration: '12 ms', ua: 'ExamplePayments/1.0',
+    path: '/h/abc123xyz?environment=sandbox&source=payments',
+    query: [{ k: 'environment', v: 'sandbox' }, { k: 'source', v: 'payments' }],
+    headers: [
+      { name: 'content-type', value: 'application/json' },
+      { name: 'user-agent', value: 'ExamplePayments/1.0' },
+      { name: 'x-webhook-id', value: 'evt_8f31a2' },
+      { name: 'x-webhook-signature', value: 'sha256=9f2c41ab77de0031', secret: true },
+      { name: 'authorization', value: 'Bearer sk_live_4Kd92hs7', secret: true }
+    ],
+    body: {
+      id: 'evt_8f31a2', event: 'payment.completed', created_at: '2026-08-06T23:42:16+02:00',
+      data: {
+        payment_id: 'pay_239184', amount: 1499, currency: 'SEK', status: 'completed',
+        customer: { id: 'cus_48291', email: 'developer@example.com' }
+      }
+    }
+  },
+  {
+    id: 'r2', method: 'POST', time: '23:41:58', received: '2026-08-06 23:41:58 +02:00',
+    ctype: 'application/json', preview: 'subscription.renewed', ip: '198.51.100.7', size: '288 B',
+    status: '200', statusFull: '200 OK', duration: '9 ms', ua: 'ExamplePayments/1.0',
+    path: '/h/abc123xyz', query: [],
+    headers: [
+      { name: 'content-type', value: 'application/json' },
+      { name: 'user-agent', value: 'ExamplePayments/1.0' },
+      { name: 'x-webhook-id', value: 'evt_7c04b1' }
+    ],
+    body: { id: 'evt_7c04b1', event: 'subscription.renewed', data: { subscription_id: 'sub_1029', period_end: '2026-09-06', amount: 990 } }
+  },
+  {
+    id: 'r3', method: 'GET', time: '23:40:12', received: '2026-08-06 23:40:12 +02:00',
+    ctype: '—', preview: 'health check', ip: '198.51.100.7', size: '0 B',
+    status: '200', statusFull: '200 OK', duration: '4 ms', ua: 'curl/8.4.0',
+    path: '/h/abc123xyz?ping=1', query: [{ k: 'ping', v: '1' }],
+    headers: [{ name: 'user-agent', value: 'curl/8.4.0' }, { name: 'accept', value: '*/*' }],
+    body: null, raw: ''
+  },
+  {
+    id: 'r4', method: 'POST', time: '23:38:44', received: '2026-08-06 23:38:44 +02:00',
+    ctype: 'text/plain', preview: 'event=payment.failed&id=evt_7723', ip: '203.0.113.42', size: '96 B',
+    status: '200', statusFull: '200 OK', duration: '7 ms', ua: 'LegacyBilling/0.9',
+    path: '/h/abc123xyz', query: [], invalid: true,
+    headers: [{ name: 'content-type', value: 'text/plain' }, { name: 'user-agent', value: 'LegacyBilling/0.9' }],
+    body: null, raw: 'event=payment.failed&id=evt_7723&reason=card_declined&amount=1499'
+  },
+  {
+    id: 'r5', method: 'PUT', time: '23:35:02', received: '2026-08-06 23:35:02 +02:00',
+    ctype: 'application/json', preview: 'inventory.updated', ip: '192.0.2.18', size: '204 B',
+    status: '200', statusFull: '200 OK', duration: '11 ms', ua: 'WarehouseSync/2.3',
+    path: '/h/abc123xyz', query: [],
+    headers: [{ name: 'content-type', value: 'application/json' }, { name: 'user-agent', value: 'WarehouseSync/2.3' }],
+    body: { sku: 'AB-2201', event: 'inventory.updated', quantity: 42, warehouse: 'sto-1' }
+  },
+  {
+    id: 'r6', method: 'PATCH', time: '23:28:50', received: '2026-08-06 23:28:50 +02:00',
+    ctype: 'application/xml', preview: '<order id="ord_5512">', ip: '192.0.2.18', size: '318 B',
+    status: '200', statusFull: '200 OK', duration: '10 ms', ua: 'OrdersBridge/1.2',
+    path: '/h/abc123xyz', query: [],
+    headers: [{ name: 'content-type', value: 'application/xml' }, { name: 'user-agent', value: 'OrdersBridge/1.2' }],
+    body: null, raw: '<?xml version="1.0" encoding="UTF-8"?>\n<order id="ord_5512">\n  <status>shipped</status>\n  <carrier>PostNord</carrier>\n</order>'
+  },
+  {
+    id: 'r7', method: 'DELETE', time: '23:24:19', received: '2026-08-06 23:24:19 +02:00',
+    ctype: 'application/json', preview: 'session.revoked', ip: '203.0.113.42', size: '82 B',
+    status: '204', statusFull: '204 No Content', duration: '5 ms', ua: 'AuthService/3.0',
+    path: '/h/abc123xyz', query: [],
+    headers: [{ name: 'content-type', value: 'application/json' }, { name: 'authorization', value: 'Bearer sk_live_4Kd92hs7', secret: true }],
+    body: { event: 'session.revoked', session_id: 'ses_88213' }
+  }
+];
+
+const ENDPOINTS = [
+  { name: 'Payments sandbox', url: 'https://testmyhook.dev/h/abc123xyz', status: 'Active', created: '6 Aug 2026', expires: 'in 23 h', requests: '7', last: '23:42:16' },
+  { name: 'Stripe test', url: 'https://testmyhook.dev/h/k92mfz01', status: 'Active', created: '6 Aug 2026', expires: 'in 4 h', requests: '31', last: '21:08:44' },
+  { name: 'Orders bridge', url: 'https://testmyhook.dev/h/pq77xa2b', status: 'Expired', created: '4 Aug 2026', expires: '5 Aug 2026', requests: '112', last: '4 Aug 18:20' },
+  { name: 'Untitled endpoint', url: 'https://testmyhook.dev/h/z1o4kk9d', status: 'Expired', created: '1 Aug 2026', expires: '2 Aug 2026', requests: '3', last: '1 Aug 09:12' }
+];
+
+class Component extends DCLogic {
+  state = {
+    view: this.props.initialView || 'landing',
+    modal: null,
+    signedIn: this.props.signedIn !== false,
+    requests: REQUESTS,
+    sel: 'r1',
+    search: '',
+    filter: 'ALL',
+    tab: 'body',
+    bodyMode: 'pretty',
+    bodySearch: '',
+    wrap: true,
+    reveal: false,
+    autoScroll: true,
+    demo: 'active',
+    mobileDetail: false,
+    paused: false,
+    sig: true,
+    redirects: true,
+    replay: null,
+    respStatus: '200',
+    respBody: '{\n  "received": true\n}',
+    expiry: '24 hours',
+    toast: null,
+    confirmKind: null,
+    w: 1280
+  };
+
+  componentDidMount() {
+    this._onResize = () => this.setState({ w: window.innerWidth });
+    this._onResize();
+    window.addEventListener('resize', this._onResize);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this._onResize);
+    clearTimeout(this._t);
+  }
+
+  toast(msg) {
+    clearTimeout(this._t);
+    this.setState({ toast: msg });
+    this._t = setTimeout(() => this.setState({ toast: null }), 2400);
+  }
+  copy(text, msg) {
+    try { navigator.clipboard && navigator.clipboard.writeText(text); } catch (e) {}
+    this.toast(msg);
+  }
+
+  jsonLines(v) {
+    const c = { p: '#9A9AAB', k: '#5B36F0', s: '#0F766E', n: '#B45309', b: '#2563EB' };
+    const out = [];
+    const push = (ind, parts) => out.push({ n: out.length + 1, indent: '  '.repeat(ind), parts: parts.map((x, i) => Object.assign({ key: i }, x)) });
+    const walk = (val, ind, key, last) => {
+      const pre = key !== null ? [{ t: '"' + key + '"', c: c.k }, { t: ': ', c: c.p }] : [];
+      const tail = last ? '' : ',';
+      if (val && typeof val === 'object' && !Array.isArray(val)) {
+        push(ind, pre.concat([{ t: '{', c: c.p }]));
+        const ks = Object.keys(val);
+        ks.forEach((k, i) => walk(val[k], ind + 1, k, i === ks.length - 1));
+        push(ind, [{ t: '}' + tail, c: c.p }]);
+      } else if (Array.isArray(val)) {
+        push(ind, pre.concat([{ t: '[', c: c.p }]));
+        val.forEach((x, i) => walk(x, ind + 1, null, i === val.length - 1));
+        push(ind, [{ t: ']' + tail, c: c.p }]);
+      } else {
+        let t, col;
+        if (typeof val === 'string') { t = '"' + val + '"'; col = c.s; }
+        else if (typeof val === 'number') { t = String(val); col = c.n; }
+        else { t = String(val); col = c.b; }
+        push(ind, pre.concat([{ t: t, c: col }], tail ? [{ t: tail, c: c.p }] : []));
+      }
+    };
+    walk(v, 0, null, true);
+    return out;
+  }
+
+  pill(active, label) {
+    return 'font-family: \'JetBrains Mono\', monospace; font-size: 11.5px; font-weight: 600; padding: 4px 9px; border-radius: 6px; cursor: pointer; border: 1px solid ' +
+      (active ? '#DDD5FF' : '#EFEFF3') + '; background: ' + (active ? '#F2EFFF' : '#fff') + '; color: ' + (active ? '#5B36F0' : '#6B6B7B') + ';';
+  }
+  chip(active, label) {
+    return 'font-size: 12.5px; font-weight: 600; padding: 6px 12px; border-radius: 7px; cursor: pointer; border: 1px solid ' +
+      (active ? '#DDD5FF' : '#E7E7EC') + '; background: ' + (active ? '#F2EFFF' : '#fff') + '; color: ' + (active ? '#5B36F0' : '#6B6B7B') + ';';
+  }
+
+  renderVals() {
+    const s = this.state;
+    const isMobile = s.w < 860;
+    const demo = s.demo;
+    const empty = demo === 'waiting';
+    const reqs = empty ? [] : s.requests;
+
+    const dressed = reqs.map(r => {
+      const mc = COL[r.method] || COL.GET;
+      const isSel = r.id === s.sel;
+      return Object.assign({}, r, {
+        key: r.id,
+        mColor: mc[0], mTint: mc[1],
+        sColor: r.status === '204' ? '#6B6B7B' : '#15803D',
+        sTint: r.status === '204' ? '#F4F4F7' : '#ECFDF3',
+        onClick: () => this.setState({ sel: r.id, mobileDetail: true, tab: 'body', replay: null }),
+        rowStyle: 'padding: 12px 14px; border-bottom: 1px solid #F5F5F8; cursor: pointer; border-left: 3px solid ' +
+          (isSel ? '#6D4AFF' : 'transparent') + '; background: ' + (isSel ? '#FAF9FF' : r.isNew ? '#F7F5FF' : '#fff') + ';'
+      });
+    });
+
+    const q = s.search.trim().toLowerCase();
+    const list = dressed.filter(r =>
+      (s.filter === 'ALL' || r.method === s.filter) &&
+      (!q || (r.preview + ' ' + r.method + ' ' + r.ip + ' ' + r.ctype).toLowerCase().indexOf(q) >= 0)
+    );
+
+    const sel = dressed.filter(r => r.id === s.sel)[0] || dressed[0] || null;
+
+    const headers = sel ? sel.headers.map((h, i) => ({
+      key: i, name: h.name,
+      shown: h.secret && !s.reveal ? '••••••••••••' : h.value
+    })) : [];
+
+    const bodyLines = sel && sel.body ? this.jsonLines(sel.body) : [];
+    const rawBody = sel ? (sel.body ? JSON.stringify(sel.body, null, 2) : (sel.raw || '(no body)')) : '';
+    const rawRequest = sel
+      ? sel.method + ' ' + sel.path + ' HTTP/1.1\nhost: testmyhook.dev\n' +
+        headers.map(h => h.name + ': ' + h.shown).join('\n') + '\n\n' + (rawBody === '(no body)' ? '' : rawBody)
+      : '';
+
+    const statusMap = {
+      active: ['Active', '#15803D', '#ECFDF3', '#CFF0DC'],
+      waiting: ['Active', '#15803D', '#ECFDF3', '#CFF0DC'],
+      paused: ['Paused', '#C2410C', '#FFF4EC', '#F6DCC8'],
+      expired: ['Expired', '#DC2626', '#FEF2F2', '#F2D4D4'],
+      large: ['Active', '#15803D', '#ECFDF3', '#CFF0DC'],
+      rate: ['Active', '#15803D', '#ECFDF3', '#CFF0DC']
+    };
+    const st = statusMap[demo] || statusMap.active;
+
+    const banners = {
+      paused: ['This endpoint is currently paused.', 'Incoming requests will not be stored while the endpoint is paused.', '#C2410C', '#FDF7F2', '#F6DCC8',
+        [{ key: 'a', label: 'Resume receiving', onClick: () => this.setState({ demo: 'active', paused: false }) }]],
+      expired: ['This webhook endpoint has expired.', 'Captured requests remain available until the retention window ends.', '#DC2626', '#FEF6F6', '#F2D4D4',
+        [{ key: 'a', label: 'Create a new endpoint', onClick: () => this.setState({ modal: 'create' }) },
+         { key: 'b', label: 'Duplicate settings', onClick: () => this.toast('Settings duplicated') },
+         { key: 'c', label: 'View previous requests', onClick: () => this.setState({ demo: 'active' }) }]],
+      large: ['Request too large.', 'A request of 4.2 MB exceeded the 1 MB body limit and was rejected with 413 Payload Too Large.', '#DC2626', '#FEF6F6', '#F2D4D4',
+        [{ key: 'a', label: 'Increase body size', onClick: () => this.setState({ modal: 'settings' }) },
+         { key: 'b', label: 'Dismiss', onClick: () => this.setState({ demo: 'active' }) }]],
+      rate: ['Rate limit reached.', '120 requests per minute exceeded. Further requests are rejected with 429 until the window resets.', '#DC2626', '#FEF6F6', '#F2D4D4',
+        [{ key: 'a', label: 'Dismiss', onClick: () => this.setState({ demo: 'active' }) }]]
+    };
+    const b = banners[demo];
+
+    const demoStates = [
+      ['active', 'Active'], ['waiting', 'Waiting'], ['paused', 'Paused'],
+      ['expired', 'Expired'], ['large', 'Too large'], ['rate', 'Rate limit']
+    ].map(d => ({ key: d[0], label: d[1], style: this.pill(demo === d[0]), onClick: () => this.setState({ demo: d[0], mobileDetail: false }) }));
+
+    const methodChips = ['ALL', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map(m => ({
+      key: m, label: m === 'ALL' ? 'All' : m, style: this.pill(s.filter === m), onClick: () => this.setState({ filter: m })
+    }));
+
+    const tabs = [['body', 'Body'], ['headers', 'Headers'], ['query', 'Query parameters'], ['raw', 'Raw request'], ['response', 'Response']].map(t => ({
+      key: t[0], label: t[1], onClick: () => this.setState({ tab: t[0] }),
+      style: 'padding: 11px 13px; font-size: 13.5px; font-weight: 600; cursor: pointer; white-space: nowrap; border-bottom: 2px solid ' +
+        (s.tab === t[0] ? '#6D4AFF' : 'transparent') + '; color: ' + (s.tab === t[0] ? '#16161D' : '#9A9AAB') + ';'
+    }));
+
+    const bodyModes = [['pretty', 'Pretty'], ['raw', 'Raw']].map(m => ({
+      key: m[0], label: m[1], onClick: () => this.setState({ bodyMode: m[0] }),
+      style: 'padding: 5px 12px; font-size: 12.5px; font-weight: 600; border-radius: 5px; cursor: pointer; background: ' +
+        (s.bodyMode === m[0] ? '#fff' : 'transparent') + '; color: ' + (s.bodyMode === m[0] ? '#16161D' : '#6B6B7B') +
+        '; box-shadow: ' + (s.bodyMode === m[0] ? '0 1px 2px rgba(22,22,29,0.1)' : 'none') + ';'
+    }));
+
+    const statusPresets = ['200 OK', '201 Created', '204 No Content', '400 Bad Request', '401 Unauthorized', '404 Not Found', '500 Internal Server Error'].map(p => ({
+      key: p, label: p, style: this.pill(p.indexOf(s.respStatus) === 0),
+      onClick: () => this.setState({ respStatus: p.split(' ')[0] })
+    }));
+
+    const expiryOptions = ['15 minutes', '1 hour', '24 hours', '7 days'].map(e => ({
+      key: e, label: e, style: this.chip(s.expiry === e), onClick: () => this.setState({ expiry: e })
+    }));
+
+    const histFilter = s.histFilter || 'All';
+    const historyFilters = ['Active', 'Expired', 'All'].map(f => ({
+      key: f, label: f, style: this.chip(histFilter === f), onClick: () => this.setState({ histFilter: f })
+    }));
+    const endpoints = ENDPOINTS.filter(e => histFilter === 'All' || e.status === histFilter).map(e => Object.assign({ key: e.url }, e, {
+      color: e.status === 'Active' ? '#15803D' : '#6B6B7B',
+      tint: e.status === 'Active' ? '#ECFDF3' : '#F4F4F7'
+    }));
+
+    const modalMeta = {
+      create: ['Create webhook endpoint', 'A temporary endpoint, ready in one click.', '560px'],
+      response: ['Custom response', 'Control what TestMyHook returns to the sender.', '620px'],
+      settings: ['Endpoint settings', 'Payments sandbox · /h/abc123xyz', '620px'],
+      replay: ['Replay request', sel ? sel.method + ' ' + sel.path : '', '640px'],
+      qr: ['QR code', 'Scan to open the callback URL.', '380px'],
+      confirm: [s.confirmKind === 'endpoint' ? 'Delete endpoint' : 'Delete request', '', '440px']
+    };
+    const mm = modalMeta[s.modal] || ['', '', '480px'];
+
+    const rp = s.replay;
+
+    return {
+      isLanding: s.view === 'landing',
+      isInbox: s.view === 'inbox',
+      isHistory: s.view === 'history',
+      signedIn: s.signedIn,
+      signedOut: !s.signedIn,
+      authLabel: s.signedIn ? 'Signed in' : 'Sign in',
+      toggleAuth: () => this.setState({ signedIn: !s.signedIn }),
+      goLanding: () => this.setState({ view: 'landing' }),
+      goInbox: () => this.setState({ view: 'inbox', modal: null }),
+      goHistory: () => this.setState({ view: 'history' }),
+      openCreate: () => this.setState({ modal: 'create' }),
+      openSettings: () => this.setState({ modal: 'settings' }),
+      openResponseSettings: () => this.setState({ modal: 'response' }),
+      openReplay: () => this.setState({ modal: 'replay', replay: null }),
+      openQr: () => this.setState({ modal: 'qr' }),
+      closeModal: () => this.setState({ modal: null }),
+      stop: (e) => e.stopPropagation(),
+
+      features: [
+        { key: 1, title: 'Real-time request updates', desc: 'Requests stream into the inbox as they arrive.' },
+        { key: 2, title: 'All common methods', desc: 'GET, POST, PUT, PATCH and DELETE.' },
+        { key: 3, title: 'Any payload format', desc: 'JSON, form data, XML and plain text.' },
+        { key: 4, title: 'Headers and query parameters', desc: 'Every header and parameter, captured verbatim.' },
+        { key: 5, title: 'Copy as cURL', desc: 'Reproduce any captured request from your terminal.' },
+        { key: 6, title: 'Replay requests', desc: 'Send a captured request to your local server.' },
+        { key: 7, title: 'Custom response', desc: 'Return your own status code, headers and body.' },
+        { key: 8, title: 'Temporary and private URLs', desc: 'Unguessable endpoints, never publicly indexed.' },
+        { key: 9, title: 'Automatic expiration', desc: 'Endpoints and captured requests are deleted on schedule.' }
+      ],
+
+      url: 'https://testmyhook.dev/h/abc123xyz',
+      endpointName: 'Payments sandbox',
+      statusLabel: st[0], statusColor: st[1], statusTint: st[2], statusBorder: st[3],
+      expiryLabel: demo === 'expired' ? '5 Aug 2026' : 'in 23 h 51 m',
+      countLabel: String(reqs.length),
+      pauseLabel: s.paused || demo === 'paused' ? 'Resume receiving' : 'Pause receiving',
+
+      demoStates,
+      simulate: () => {
+        const n = Object.assign({}, REQUESTS[0], {
+          id: 'rNew' + Date.now(), time: '23:44:02', received: '2026-08-06 23:44:02 +02:00',
+          preview: 'checkout.session.completed', isNew: true,
+          body: { id: 'evt_a91f27', event: 'checkout.session.completed', data: { session_id: 'cs_77120', amount: 2490, currency: 'SEK' } }
+        });
+        this.setState({ demo: 'active', requests: [n].concat(s.requests.map(r => Object.assign({}, r, { isNew: false }))), sel: n.id, tab: 'body' });
+        this.toast('New webhook received');
+      },
+
+      showBanner: !!b,
+      bannerTitle: b && b[0], bannerBody: b && b[1], bannerColor: b && b[2],
+      bannerTint: b && b[3], bannerBorder: b && b[4], bannerActions: b && b[5],
+
+      copyUrl: () => this.copy('https://testmyhook.dev/h/abc123xyz', 'Callback URL copied'),
+      copyCurl: () => this.copy('curl -X POST https://testmyhook.dev/h/abc123xyz', 'cURL example copied'),
+      copyToken: () => this.copy('whsec_9f21ab', 'Secret token copied'),
+      regenerate: () => this.toast('New callback URL generated'),
+      clearAll: () => this.setState({ demo: 'waiting', sel: null, mobileDetail: false }),
+      togglePause: () => this.setState({ demo: s.demo === 'paused' ? 'active' : 'paused', paused: s.demo !== 'paused' }),
+
+      splitWrap: isMobile ? 'wrap' : 'nowrap',
+      listWidth: isMobile ? '100%' : '340px',
+      isMobile,
+      showList: !isMobile || !s.mobileDetail,
+      showDetail: !isMobile || s.mobileDetail,
+      backToList: () => this.setState({ mobileDetail: false }),
+
+      search: s.search,
+      onSearch: (e) => this.setState({ search: e.target.value }),
+      methodChips,
+      autoScrollBg: s.autoScroll ? '#6D4AFF' : '#DEDEE6',
+      autoScrollX: s.autoScroll ? '14px' : '2px',
+      toggleAutoScroll: () => this.setState({ autoScroll: !s.autoScroll }),
+      list,
+      hasRequests: list.length > 0,
+      noRequests: list.length === 0,
+
+      hasSelection: !!sel,
+      noSelection: !sel,
+      sel: sel || {},
+      tabs,
+      tabBody: s.tab === 'body', tabHeaders: s.tab === 'headers', tabQuery: s.tab === 'query',
+      tabRaw: s.tab === 'raw', tabResponse: s.tab === 'response',
+      bodyModes,
+      showPretty: s.bodyMode === 'pretty' && !!(sel && sel.body),
+      showRawBody: s.bodyMode === 'raw' || !(sel && sel.body),
+      bodyLines, rawBody, rawRequest,
+      wrapMode: s.wrap ? 'pre-wrap' : 'pre',
+      wrapColor: s.wrap ? '#6D4AFF' : '#9A9AAB',
+      toggleWrap: () => this.setState({ wrap: !s.wrap }),
+      bodySearch: s.bodySearch,
+      onBodySearch: (e) => this.setState({ bodySearch: e.target.value }),
+      copyBody: () => this.copy(rawBody, 'Request body copied'),
+      headers,
+      revealLabel: s.reveal ? 'Hide sensitive values' : 'Reveal sensitive values',
+      toggleReveal: () => this.setState({ reveal: !s.reveal }),
+      query: sel ? sel.query.map((x, i) => Object.assign({ key: i }, x)) : [],
+      responseHeaders: [
+        { key: 1, name: 'content-type', value: 'application/json' },
+        { key: 2, name: 'x-testmyhook-id', value: 'abc123xyz' },
+        { key: 3, name: 'cache-control', value: 'no-store' }
+      ],
+      responseBody: s.respBody,
+
+      copyRequest: () => this.copy(rawRequest, 'Request copied'),
+      copyAsCurl: () => this.copy('curl -X ' + (sel ? sel.method : 'POST') + ' https://testmyhook.dev/h/abc123xyz', 'Copied as cURL'),
+      download: () => this.toast('Request downloaded'),
+      askDelete: () => this.setState({ modal: 'confirm', confirmKind: 'request' }),
+      askDeleteEndpoint: () => this.setState({ modal: 'confirm', confirmKind: 'endpoint' }),
+      confirmBody: s.confirmKind === 'endpoint'
+        ? 'Delete this endpoint and all captured requests? This action cannot be undone.'
+        : 'Delete this request? This action cannot be undone.',
+      confirmDelete: () => {
+        if (s.confirmKind === 'endpoint') {
+          this.setState({ modal: null, demo: 'expired' });
+          this.toast('Endpoint deleted');
+        } else {
+          const left = s.requests.filter(r => r.id !== s.sel);
+          this.setState({ modal: null, requests: left, sel: left[0] ? left[0].id : null });
+          this.toast('Request deleted');
+        }
+      },
+
+      modalOpen: !!s.modal,
+      modalTitle: mm[0], modalSubtitle: mm[1], modalWidth: mm[2],
+      mCreate: s.modal === 'create', mResponse: s.modal === 'response', mSettings: s.modal === 'settings',
+      mReplay: s.modal === 'replay', mQr: s.modal === 'qr', mConfirm: s.modal === 'confirm',
+      expiryOptions,
+      createEndpoint: () => { this.setState({ modal: null, view: 'inbox', demo: 'waiting', sel: null }); this.toast('Endpoint created'); },
+      statusPresets,
+      respStatus: s.respStatus,
+      respStatusFull: (['200 OK', '201 Created', '204 No Content', '400 Bad Request', '401 Unauthorized', '404 Not Found', '500 Internal Server Error']
+        .filter(p => p.indexOf(s.respStatus) === 0)[0]) || s.respStatus,
+      onRespStatus: (e) => this.setState({ respStatus: e.target.value }),
+      respBody: s.respBody,
+      onRespBody: (e) => this.setState({ respBody: e.target.value }),
+      saveResponse: () => { this.setState({ modal: null }); this.toast('Custom response saved'); },
+      saveSettings: () => { this.setState({ modal: null }); this.toast('Settings saved'); },
+      sigBg: s.sig ? '#6D4AFF' : '#DEDEE6', sigX: s.sig ? '16px' : '2px',
+      toggleSig: () => this.setState({ sig: !s.sig }),
+      redirBg: s.redirects ? '#6D4AFF' : '#DEDEE6', redirX: s.redirects ? '16px' : '2px',
+      toggleRedirects: () => this.setState({ redirects: !s.redirects }),
+      sendReplay: () => this.setState({ replay: 'ok' }),
+      failReplay: () => this.setState({ replay: 'fail' }),
+      replayResult: !!rp,
+      replayStatus: rp === 'fail' ? 'Connection refused' : '200 OK',
+      replayTime: rp === 'fail' ? 'after 10 000 ms' : '38 ms',
+      replayColor: rp === 'fail' ? '#DC2626' : '#15803D',
+      replayTint: rp === 'fail' ? '#FEF6F6' : '#F4FCF7',
+      replayBorder: rp === 'fail' ? '#F2D4D4' : '#CFF0DC',
+      replayBodyText: rp === 'fail'
+        ? 'Replay failed: could not connect to https://localhost:3000/webhooks/payments\nECONNREFUSED — check that the destination is reachable.'
+        : 'content-type: application/json\n\n{\n  "ok": true\n}',
+
+      historyFilters, endpoints,
+      toast: s.toast
+    };
+  }
+}
+
+</script>
+</body>
+</html>
