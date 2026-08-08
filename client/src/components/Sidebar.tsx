@@ -191,13 +191,21 @@ export function Sidebar(props: SidebarProps) {
             {active ?? '…'}
           </span>
           <button className="copyBtn" onClick={copyUrl}>{copied ? 'COPIED' : 'COPY'}</button>
-          <span
-            className="clickable"
+          <button
+            className="mono"
             onClick={() => setMenuOpen(o => !o)}
-            style={{ color: menuOpen ? 'var(--accent)' : 'var(--muted-2)', fontSize: 11 }}
+            title="URL options"
+            aria-label="URL options"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer',
+              fontSize: 11, letterSpacing: '0.06em', padding: '5px 8px', borderRadius: 5,
+              background: menuOpen ? 'var(--card-alt)' : 'transparent',
+              border: `1px solid ${menuOpen ? 'var(--accent)' : 'var(--border-strong)'}`,
+              color: menuOpen ? 'var(--accent)' : 'var(--muted)'
+            }}
           >
             {menuOpen ? '▴' : '▾'}
-          </span>
+          </button>
         </div>
         <div
           style={{
