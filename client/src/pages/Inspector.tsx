@@ -54,7 +54,10 @@ export function Inspector({ theme, onToggleTheme }: InspectorProps) {
     })();
   }, [persist]);
 
-  // Load endpoint + requests when the active URL changes.
+  // Load data and keep a realtime stream open for the active URL. The stream
+  // auto-reconnects (EventSource default), and every (re)connect refetches the
+  // endpoint and request list so a server restart or a tab opened while the
+  // server was down heals itself and misses nothing.
   useEffect(() => {
     if (!active) return;
     let cancelled = false;
@@ -62,24 +65,24 @@ export function Inspector({ theme, onToggleTheme }: InspectorProps) {
     setRequests([]);
     setSelectedId(null);
     setSearch('');
-    Promise.all([api.getUrl(active), api.listRequests(active)])
-      .then(([ep, reqs]) => {
-        if (cancelled) return;
-        setEndpoint(ep);
-        setRequests(reqs);
-        setSelectedId(reqs[0]?.id ?? null);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [active]);
 
-  // Realtime stream for the active URL.
-  useEffect(() => {
-    if (!active || !endpoint) return;
+    const refetch = () => {
+      Promise.all([api.getUrl(active), api.listRequests(active)])
+        .then(([ep, reqs]) => {
+          if (cancelled) return;
+          setEndpoint(ep);
+          setRequests(reqs);
+          setSelectedId(prev => (prev && reqs.some(r => r.id === prev) ? prev : reqs[0]?.id ?? null));
+        })
+        .catch(() => {});
+    };
+    refetch();
+
     const source = new EventSource(`/api/urls/${active}/stream`);
-    source.onopen = () => setLive(true);
+    source.onopen = () => {
+      setLive(true);
+      refetch();
+    };
     source.onerror = () => setLive(false);
     source.onmessage = event => {
       try {
@@ -95,11 +98,13 @@ export function Inspector({ theme, onToggleTheme }: InspectorProps) {
         // ignore malformed events
       }
     };
+
     return () => {
+      cancelled = true;
       source.close();
       setLive(false);
     };
-  }, [active, endpoint?.slug]);
+  }, [active]);
 
   const addUrl = async () => {
     try {
