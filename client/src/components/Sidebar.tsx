@@ -80,7 +80,7 @@ export function Sidebar(props: SidebarProps) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 22px 12px', overflow: 'hidden', width: 392 }}>
+      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6, padding: '0 22px 12px' }}>
         {slugs.map(slug => {
           const isActive = slug === active;
           return (
@@ -90,7 +90,7 @@ export function Sidebar(props: SidebarProps) {
               className="clickable"
               style={{
                 display: 'flex', alignItems: 'center', gap: 5, padding: '6px 7px', borderRadius: 7,
-                minWidth: 0, flex: isActive ? 'none' : '0 1 auto',
+                flex: 'none', maxWidth: '100%',
                 border: `1px solid ${isActive ? 'var(--accent)' : 'var(--border-strong)'}`,
                 background: isActive ? 'var(--card)' : 'transparent'
               }}
