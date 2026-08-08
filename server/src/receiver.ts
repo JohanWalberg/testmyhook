@@ -6,13 +6,13 @@ import { RateLimiter } from './ratelimit.js';
 import { serializeRequest } from './serialize.js';
 
 export const MAX_BODY_BYTES = 10 * 1_048_576; // 10 MB body max
-export const MAX_REQUESTS_PER_URL = 100; // 100 webhooks kept per URL
+export const MAX_REQUESTS_PER_URL = 500; // webhooks kept per URL
 export const ENDPOINT_RATE_LIMIT = 120; // per minute per URL
 const IP_RATE_LIMIT = 600; // per minute per source IP
 const MAX_DELAY_MS = 5_000;
 
-/** Matches /<adjective>-<noun>-<nn> plus an optional captured subpath. */
-export const RECEIVER_ROUTE = /^\/([a-z]+-[a-z]+-\d{2})(\/.*)?$/;
+/** Matches /<adjective>-<noun>-<suffix> plus an optional captured subpath. */
+export const RECEIVER_ROUTE = /^\/([a-z]+-[a-z]+-[a-z0-9]{2,12})(\/.*)?$/;
 
 function readRawBody(req: Request, limit: number): Promise<{ body: Buffer; tooLarge: boolean }> {
   return new Promise((resolve, reject) => {

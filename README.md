@@ -6,12 +6,12 @@ The UI is implemented from the design in [`design_prototype/TestMyHook.dc.html`]
 
 ## How it works
 
-- Every URL gets a random readable slug: `testmyhook.dev/tiny-snow-27`
-- Anything after the slug is captured as the request path: `POST /tiny-snow-27/orders/created` shows up as `/orders/created`
+- Every URL gets a random readable slug: `testmyhook.dev/tiny-snow-k4d92h`
+- Anything after the slug is captured as the request path: `POST /tiny-snow-k4d92h/orders/created` shows up as `/orders/created`
 - Requests stream into the sidebar in real time (SSE), grouped by day, with the sender detected from the user-agent (`shopify · 200 · 1.4 kB`)
 - Configure the response returned to the sender: status code, body, delay
 - Multiple URLs as tabs · regenerate · copy · export as JSON · dark mode
-- No accounts. URLs are deleted after 7 days of inactivity. 100 webhooks kept per URL, 10 MB body max.
+- No accounts. URLs are deleted after 7 days of inactivity. 500 webhooks kept per URL, 10 MB body max.
 
 ## Stack
 
@@ -34,7 +34,7 @@ npm start          # server on :8787, serves the built client
 
 ## Testing
 
-**Automated** — `npm test` runs the server suite (29 tests): slug generation, receiving all methods with subpaths/headers/query, JSON and raw payloads, unknown slugs, 10 MB limit, display truncation, 100-request trimming, custom responses (status/body/delay clamp), regeneration, JSON export, 7-day inactivity purge, rate limiting, CORS, health check and source detection.
+**Automated** — `npm test` runs the server suite (29 tests): slug generation, receiving all methods with subpaths/headers/query, JSON and raw payloads, unknown slugs, 10 MB limit, display truncation, 500-request trimming, custom responses (status/body/delay clamp), regeneration, JSON export, 7-day inactivity purge, rate limiting, CORS, health check and source detection.
 
 **Manually, end to end** — start the app, open it in a browser (a URL is created for you), then send requests from a terminal:
 

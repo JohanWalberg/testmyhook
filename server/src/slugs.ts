@@ -24,12 +24,21 @@ const NOUNS = [
   'storm', 'swan', 'thorn', 'tide', 'trail', 'vale', 'wave', 'willow', 'wolf', 'wren'
 ];
 
-export const SLUG_PATTERN = /^[a-z]+-[a-z]+-\d{2}$/;
+/** Accepts both current slugs (6-char random suffix) and legacy 2-digit ones. */
+export const SLUG_PATTERN = /^[a-z]+-[a-z]+-[a-z0-9]{2,12}$/;
 
-/** Random readable slug like `tiny-snow-27`, chosen with a CSPRNG. */
+const SUFFIX_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
+const SUFFIX_LENGTH = 6;
+
+/**
+ * Random readable slug like `tiny-snow-k4d92h`, chosen with a CSPRNG.
+ * Words keep it friendly; the 6-char base-36 suffix (~44 bits combined)
+ * makes live URLs impractical to find by scanning.
+ */
 export function newSlug(): string {
   const adjective = ADJECTIVES[randomInt(ADJECTIVES.length)];
   const noun = NOUNS[randomInt(NOUNS.length)];
-  const number = String(randomInt(100)).padStart(2, '0');
-  return `${adjective}-${noun}-${number}`;
+  let suffix = '';
+  for (let i = 0; i < SUFFIX_LENGTH; i++) suffix += SUFFIX_ALPHABET[randomInt(SUFFIX_ALPHABET.length)];
+  return `${adjective}-${noun}-${suffix}`;
 }

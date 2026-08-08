@@ -110,7 +110,7 @@ export function createDb(path: string) {
         .get(requestId, endpointId) as RequestRow | undefined;
     },
 
-    listRequests(endpointId: number, limit = 200): RequestRow[] {
+    listRequests(endpointId: number, limit = 500): RequestRow[] {
       return db.prepare('SELECT * FROM requests WHERE endpoint_id = ? ORDER BY id DESC LIMIT ?')
         .all(endpointId, limit) as unknown as RequestRow[];
     },

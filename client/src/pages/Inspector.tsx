@@ -89,7 +89,7 @@ export function Inspector({ theme, onToggleTheme }: InspectorProps) {
         const data = JSON.parse(event.data);
         if (data.type === 'request') {
           const incoming = data.request as ApiRequest;
-          setRequests(prev => (prev.some(r => r.id === incoming.id) ? prev : [incoming, ...prev].slice(0, 100)));
+          setRequests(prev => (prev.some(r => r.id === incoming.id) ? prev : [incoming, ...prev].slice(0, 500)));
           setSelectedId(prev => prev ?? incoming.id);
         } else if (data.type === 'endpoint') {
           setEndpoint(data.endpoint as ApiEndpoint);

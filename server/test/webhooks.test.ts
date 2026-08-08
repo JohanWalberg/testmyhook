@@ -133,15 +133,22 @@ describe('receiving webhooks', () => {
     expect(exported.body.requests[0].body.length).toBe(300_000);
   });
 
-  it('keeps only the most recent 100 requests per URL', async () => {
+  it('keeps only the most recent 500 requests per URL', async () => {
     const { slug } = await createUrl();
-    for (let i = 0; i < 105; i++) {
-      await request(app).post(`/${slug}/n/${i}`).send({ i });
+    const endpoint = db.getEndpointBySlug(slug)!;
+    for (let i = 0; i < 510; i++) {
+      db.insertRequest({
+        endpoint_id: endpoint.id, method: 'POST', path: `/n/${i}`,
+        query_json: '[]', headers_json: '[]', raw_body: null, content_type: null,
+        source_ip: null, user_agent: null, body_size: 0, received_at: Date.now(),
+        response_status: 200, duration_ms: 0
+      });
     }
+    db.trimRequests(endpoint.id, 500);
     const list = await request(app).get(`/api/urls/${slug}/requests`);
-    expect(list.body).toHaveLength(100);
-    expect(list.body[0].path).toBe('/n/104');
-    expect(list.body[99].path).toBe('/n/5');
+    expect(list.body).toHaveLength(500);
+    expect(list.body[0].path).toBe('/n/509');
+    expect(list.body[499].path).toBe('/n/10');
   });
 
   it('updates last activity on each request', async () => {

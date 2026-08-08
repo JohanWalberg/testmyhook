@@ -21,7 +21,7 @@ const STEPS = [
 
 const FACTS = [
   { label: 'Retention', body: 'URLs are deleted after 7 days of inactivity.' },
-  { label: 'Limits', body: '100 webhooks kept per URL · 10 MB body max.' },
+  { label: 'Limits', body: '500 webhooks kept per URL · 10 MB body max.' },
   { label: 'Accounts', body: 'None. The site is open to everyone.' }
 ];
 
@@ -55,13 +55,13 @@ export function Docs() {
           <div className="mono" style={{ background: '#16130F', borderRadius: 9, padding: '20px 22px', fontSize: 13, lineHeight: 1.9, color: '#E6E0D4', overflowX: 'auto' }}>
             <div style={{ color: '#8C8377', fontSize: 11, letterSpacing: '0.14em', marginBottom: 10 }}>CURL</div>
             <div><span style={{ color: '#7E9C86' }}>$</span> curl -X POST \</div>
-            <div style={{ paddingLeft: 20 }}>{window.location.origin}/tiny-snow-27/orders \</div>
+            <div style={{ paddingLeft: 20 }}>{window.location.origin}/tiny-snow-k4d92h/orders \</div>
             <div style={{ paddingLeft: 20 }}>-d <span style={{ color: '#E0A45C' }}>{`'{"hello":"world"}'`}</span></div>
           </div>
           <div className="mono" style={{ background: '#16130F', borderRadius: 9, padding: '20px 22px', fontSize: 13, lineHeight: 1.9, color: '#E6E0D4', overflowX: 'auto' }}>
             <div style={{ color: '#8C8377', fontSize: 11, letterSpacing: '0.14em', marginBottom: 10 }}>JAVASCRIPT</div>
             <div><span style={{ color: '#B58FD6' }}>await</span> fetch(<span style={{ color: '#E0A45C' }}>"{window.location.origin}</span></div>
-            <div style={{ paddingLeft: 20 }}><span style={{ color: '#E0A45C' }}>/tiny-snow-27/orders"</span>, {'{'}</div>
+            <div style={{ paddingLeft: 20 }}><span style={{ color: '#E0A45C' }}>/tiny-snow-k4d92h/orders"</span>, {'{'}</div>
             <div style={{ paddingLeft: 20 }}>method: <span style={{ color: '#E0A45C' }}>"POST"</span>, body: json</div>
             <div>{'})'}</div>
           </div>
