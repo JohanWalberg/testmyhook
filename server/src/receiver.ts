@@ -4,6 +4,7 @@ import type { Db } from './db.js';
 import type { EventHub } from './events.js';
 import { RateLimiter } from './ratelimit.js';
 import { serializeRequest } from './serialize.js';
+import { coarseLocation } from './geo.js';
 
 export const MAX_BODY_BYTES = 10 * 1_048_576; // 10 MB body max
 export const MAX_REQUESTS_PER_URL = 500; // webhooks kept per URL
@@ -108,6 +109,8 @@ export function createReceiver(db: Db, hub: EventHub): Router {
     db.trimRequests(endpoint.id, MAX_REQUESTS_PER_URL);
     db.updateEndpoint(endpoint.id, { last_activity_at: started });
     db.bumpCounter('webhooks_received');
+    const location = coarseLocation(sourceIp);
+    if (location) db.bumpGeo(location.lat, location.lon);
     hub.publish(slug, { type: 'request', request: serializeRequest(stored) });
 
     const send = () => {

@@ -300,6 +300,21 @@ describe('stats', () => {
   });
 });
 
+describe('geo aggregation', () => {
+  it('records coarse locations for public IPs and skips private ones', async () => {
+    const { slug } = await createUrl();
+    await request(app).post(`/${slug}`).set('X-Forwarded-For', '8.8.8.8').send({ a: 1 });
+    await request(app).post(`/${slug}`).set('X-Forwarded-For', '8.8.8.8').send({ a: 2 });
+    await request(app).post(`/${slug}`).set('X-Forwarded-For', '192.168.1.7').send({ a: 3 });
+
+    const stats = await request(app).get('/api/stats');
+    expect(stats.body.points).toHaveLength(1);
+    expect(stats.body.points[0].n).toBe(2);
+    expect(Math.abs(stats.body.points[0].lat % 2)).toBe(0); // snapped to the 2° grid
+    expect(Math.abs(stats.body.points[0].lon % 2)).toBe(0);
+  });
+});
+
 describe('source detection', () => {
   it.each([
     ['Shopify-Captain-Hook', 'shopify'],

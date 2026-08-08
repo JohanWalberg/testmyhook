@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path';
 import express from 'express';
 import { createDb } from './db.js';
 import { createApp } from './app.js';
+import { coarseLocation } from './geo.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT ?? 8787);
@@ -24,7 +25,11 @@ if (existsSync(clientDist)) {
   // see new deploys without a hard refresh.
   app.use(express.static(clientDist, { index: false, maxAge: '1y', immutable: true }));
   app.get(/^\/(?!api\b).*/, (req, res) => {
-    if (req.path === '/') db.bumpCounter('page_visits');
+    if (req.path === '/') {
+      db.bumpCounter('page_visits');
+      const location = coarseLocation(req.ip ?? null);
+      if (location) db.bumpGeo(location.lat, location.lon);
+    }
     res.setHeader('Cache-Control', 'no-cache');
     res.sendFile(join(clientDist, 'index.html'));
   });

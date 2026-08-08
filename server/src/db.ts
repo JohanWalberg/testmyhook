@@ -72,6 +72,13 @@ export function createDb(path: string) {
       key TEXT PRIMARY KEY,
       value INTEGER NOT NULL DEFAULT 0
     );
+
+    CREATE TABLE IF NOT EXISTS geo (
+      lat INTEGER NOT NULL,
+      lon INTEGER NOT NULL,
+      count INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (lat, lon)
+    );
   `);
   db.prepare('INSERT OR IGNORE INTO counters (key, value) VALUES (?, ?)').run('since', Date.now());
 
@@ -138,6 +145,13 @@ export function createDb(path: string) {
       db.prepare('DELETE FROM endpoints WHERE last_activity_at + ? < ?').run(maxIdleMs, now);
     },
 
+    bumpGeo(lat: number, lon: number): void {
+      db.prepare(`
+        INSERT INTO geo (lat, lon, count) VALUES (?, ?, 1)
+        ON CONFLICT(lat, lon) DO UPDATE SET count = count + 1
+      `).run(lat, lon);
+    },
+
     bumpCounter(key: string, delta = 1): void {
       db.prepare(`
         INSERT INTO counters (key, value) VALUES (?, ?)
@@ -158,7 +172,9 @@ export function createDb(path: string) {
         pageVisits: counter('page_visits'),
         urlsActive: one('SELECT COUNT(*) AS n FROM endpoints'),
         webhooksStored: one('SELECT COUNT(*) AS n FROM requests'),
-        bytesStored: one('SELECT COALESCE(SUM(body_size), 0) AS n FROM requests')
+        bytesStored: one('SELECT COALESCE(SUM(body_size), 0) AS n FROM requests'),
+        points: db.prepare('SELECT lat, lon, count AS n FROM geo ORDER BY count DESC LIMIT 800')
+          .all() as unknown as { lat: number; lon: number; n: number }[]
       };
     },
 

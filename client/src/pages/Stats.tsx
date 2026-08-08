@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Logo } from '../components/Logo';
+import { WorldMap, type GeoPoint } from '../components/WorldMap';
 import { formatSize } from '../lib/format';
 
 interface StatsPayload {
@@ -11,6 +12,7 @@ interface StatsPayload {
   urlsActive: number;
   webhooksStored: number;
   bytesStored: number;
+  points: GeoPoint[];
 }
 
 function formatCount(n: number): string {
@@ -69,6 +71,19 @@ export function Stats() {
           </div>
         ) : (
           <div className="mono" style={{ fontSize: 13, color: 'var(--muted-2)' }}>loading…</div>
+        )}
+
+        {stats && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, borderTop: '2px solid var(--ink)', paddingTop: 16 }}>
+            <div className="mono" style={{ fontSize: 11.5, letterSpacing: '0.14em', color: 'var(--accent)' }}>
+              WHERE ACTIVITY COMES FROM
+            </div>
+            <WorldMap points={stats.points} />
+            <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: 'var(--muted-2)', maxWidth: 720 }}>
+              Each dot is a region that sent webhooks or visited the site. Locations are approximate and aggregated to a
+              ~200 km grid — no IP addresses are stored. {stats.points.length === 0 && 'Nothing to show yet: local traffic has no public location.'}
+            </p>
+          </div>
         )}
       </div>
     </div>
