@@ -20,8 +20,11 @@ purge.unref();
 // the receiver route in app.ts is registered first.
 const clientDist = join(__dirname, '../../client/dist');
 if (existsSync(clientDist)) {
-  app.use(express.static(clientDist));
+  // Hashed assets can cache forever; index.html must revalidate so users
+  // see new deploys without a hard refresh.
+  app.use(express.static(clientDist, { index: false, maxAge: '1y', immutable: true }));
   app.get(/^\/(?!api\b).*/, (_req, res) => {
+    res.setHeader('Cache-Control', 'no-cache');
     res.sendFile(join(clientDist, 'index.html'));
   });
 }

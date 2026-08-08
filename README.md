@@ -58,9 +58,16 @@ Paste `https://<tunnel-host>/<your-slug>` into the service's webhook settings. B
 
 Nothing is hardcoded to localhost — the client derives every URL from the browser's own address (`window.location`), and the server binds `PORT` (default 8787) and stores data at `DB_PATH`. Deploying behind `testmyhook.dev` automatically makes every displayed and copied URL `https://testmyhook.dev/<slug>`.
 
+The repo ships a complete production stack — app + Caddy (automatic HTTPS) — as one command. On a fresh Ubuntu VPS:
+
 ```bash
-docker build -t testmyhook .
-docker run -d -p 8787:8787 -v testmyhook-data:/data --name testmyhook testmyhook
+# 1. Point DNS: an A record for your domain → the server's IP (do this first)
+# 2. Install Docker: curl -fsSL https://get.docker.com | sh
+# 3. Get the code onto the server (git clone or scp), then:
+sed -i 's/testmyhook.dev/yourdomain.tld/' Caddyfile   # if your domain differs
+docker compose up -d --build
 ```
 
-Put a TLS-terminating reverse proxy (Caddy, nginx, or your platform's ingress) in front, forwarding to port 8787. `trust proxy` is enabled, so client IPs come from `X-Forwarded-For`, and the SSE stream sends `X-Accel-Buffering: no` so nginx won't buffer it. `/healthz` is available for load-balancer checks; SIGTERM triggers a graceful shutdown. Single instance only — SQLite and the in-process event stream don't scale horizontally (by design, for this size of product).
+That's live: Caddy fetches TLS certificates automatically and proxies to the app; the SQLite data lives in the `app_data` volume and survives redeploys. To deploy an update: `git pull && docker compose up -d --build`.
+
+Running without the bundled Caddy also works — `docker build -t testmyhook . && docker run -d -p 8787:8787 -v testmyhook-data:/data testmyhook` behind any TLS-terminating proxy or platform ingress. `trust proxy` is enabled, so client IPs come from `X-Forwarded-For`, and the SSE stream sends `X-Accel-Buffering: no` so nginx won't buffer it. `/healthz` is available for load-balancer checks; SIGTERM triggers a graceful shutdown. Single instance only — SQLite and the in-process event stream don't scale horizontally (by design, for this size of product).
