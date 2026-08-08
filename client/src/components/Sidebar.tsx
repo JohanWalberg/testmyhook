@@ -75,7 +75,7 @@ export function Sidebar(props: SidebarProps) {
 
   const filtered = search.trim()
     ? requests.filter(r =>
-        `${r.path} ${r.method} ${r.source} ${r.bodyIsText ? r.body : ''}`.toLowerCase().includes(search.trim().toLowerCase())
+        `${r.path} ${r.method} ${r.source} ${r.sourceIp ?? ''} ${r.bodyIsText ? r.body : ''}`.toLowerCase().includes(search.trim().toLowerCase())
       )
     : requests;
 

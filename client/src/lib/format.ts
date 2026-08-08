@@ -141,6 +141,26 @@ export function jsonToLines(value: unknown): CodeLine[] {
   return out;
 }
 
+/**
+ * List-row title. Subpaths speak for themselves; for bare "/" requests we
+ * surface the event name from a JSON body when there is one, else a short id
+ * tag so rows remain distinguishable.
+ */
+export function requestTitle(req: ApiRequest): string {
+  if (req.path !== '/') return req.path;
+  if (req.bodyIsText && req.body.length > 0 && req.body.length < 4096) {
+    try {
+      const parsed = JSON.parse(req.body) as Record<string, unknown>;
+      for (const key of ['event', 'type', 'action', 'event_type', 'topic']) {
+        if (typeof parsed[key] === 'string' && parsed[key]) return parsed[key] as string;
+      }
+    } catch {
+      // not JSON — fall through
+    }
+  }
+  return `/ #${req.id.toString(36)}`;
+}
+
 export function parsedJson(req: ApiRequest): unknown | undefined {
   if (!req.bodyIsText || req.body.trim() === '') return undefined;
   try {

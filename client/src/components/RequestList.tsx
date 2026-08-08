@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { ApiRequest } from '../types';
-import { dayLabel, formatSize, listTime } from '../lib/format';
+import { dayLabel, formatSize, listTime, requestTitle } from '../lib/format';
 
 interface RequestListProps {
   requests: ApiRequest[];
@@ -90,14 +90,14 @@ export function RequestList({ requests, total, selectedId, onSelect }: RequestLi
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                     }}
                   >
-                    {r.path}
+                    {requestTitle(r)}
                   </span>
                   <span className="mono" style={{ fontSize: 11, color: 'var(--muted-2)', marginLeft: 'auto', flex: 'none' }}>
                     {listTime(r.receivedAt)}
                   </span>
                 </div>
-                <div className="mono" style={{ fontSize: 11.5, color: 'var(--muted-2)' }}>
-                  {r.source} · {r.responseStatus} · {formatSize(r.bodySize)}
+                <div className="mono" style={{ fontSize: 11.5, color: 'var(--muted-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {[r.source, r.sourceIp, r.responseStatus, formatSize(r.bodySize)].filter(x => x !== null && x !== undefined).join(' · ')}
                 </div>
               </div>
             );
