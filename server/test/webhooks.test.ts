@@ -1,0 +1,234 @@
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import request from 'supertest';
+import { createDb, type Db } from '../src/db.js';
+import { createApp } from '../src/app.js';
+import { detectSource } from '../src/serialize.js';
+import { newSlug, SLUG_PATTERN } from '../src/slugs.js';
+
+let db: Db;
+let app: ReturnType<typeof createApp>['app'];
+
+beforeEach(() => {
+  db = createDb(':memory:');
+  app = createApp(db).app;
+});
+
+afterEach(() => {
+  db.close();
+});
+
+async function createUrl() {
+  const res = await request(app).post('/api/urls');
+  expect(res.status).toBe(201);
+  return res.body as { slug: string };
+}
+
+describe('slugs', () => {
+  it('generates readable word-number slugs', () => {
+    for (let i = 0; i < 50; i++) {
+      expect(newSlug()).toMatch(SLUG_PATTERN);
+    }
+  });
+
+  it('creates a URL with a fresh slug', async () => {
+    const { slug } = await createUrl();
+    expect(slug).toMatch(SLUG_PATTERN);
+  });
+});
+
+describe('receiving webhooks', () => {
+  it('captures a POST with JSON body, headers, query and subpath', async () => {
+    const { slug } = await createUrl();
+    const res = await request(app)
+      .post(`/${slug}/orders/created?source=pos&retry=0`)
+      .set('Content-Type', 'application/json')
+      .set('User-Agent', 'Shopify-Captain-Hook')
+      .set('X-Shopify-Topic', 'orders/create')
+      .send({ id: 8812, currency: 'EUR' });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true });
+
+    const list = await request(app).get(`/api/urls/${slug}/requests`);
+    expect(list.body).toHaveLength(1);
+    const r = list.body[0];
+    expect(r.method).toBe('POST');
+    expect(r.path).toBe('/orders/created');
+    expect(r.source).toBe('shopify');
+    expect(r.query).toEqual(expect.arrayContaining([
+      { k: 'source', v: 'pos' },
+      { k: 'retry', v: '0' }
+    ]));
+    expect(r.headers).toEqual(expect.arrayContaining([{ name: 'x-shopify-topic', value: 'orders/create' }]));
+    expect(JSON.parse(r.body)).toEqual({ id: 8812, currency: 'EUR' });
+  });
+
+  it('captures requests to the bare slug with path "/"', async () => {
+    const { slug } = await createUrl();
+    await request(app).post(`/${slug}`).send({ hello: 'world' });
+    const list = await request(app).get(`/api/urls/${slug}/requests`);
+    expect(list.body[0].path).toBe('/');
+  });
+
+  it('accepts GET, PUT, PATCH, DELETE, OPTIONS and HEAD', async () => {
+    const { slug } = await createUrl();
+    for (const method of ['get', 'put', 'patch', 'delete', 'options', 'head'] as const) {
+      const res = await request(app)[method](`/${slug}/ping`);
+      expect(res.status).toBe(200);
+    }
+    const list = await request(app).get(`/api/urls/${slug}/requests`);
+    expect(list.body).toHaveLength(6);
+  });
+
+  it('captures raw non-JSON payloads', async () => {
+    const { slug } = await createUrl();
+    await request(app).post(`/${slug}`).set('Content-Type', 'text/plain').send('event=paid&id=7');
+    const list = await request(app).get(`/api/urls/${slug}/requests`);
+    expect(list.body[0].body).toBe('event=paid&id=7');
+    expect(list.body[0].bodyIsText).toBe(true);
+  });
+
+  it('returns 404 for unknown slugs', async () => {
+    const res = await request(app).post('/void-void-99').send({ a: 1 });
+    expect(res.status).toBe(404);
+  });
+
+  it('does not intercept non-slug paths', async () => {
+    const res = await request(app).get('/api/urls/not-a-slug');
+    expect(res.status).toBe(404); // API 404, not receiver capture
+  });
+
+  it('rejects payloads over 1 MB with 413', async () => {
+    const { slug } = await createUrl();
+    const res = await request(app)
+      .post(`/${slug}`)
+      .set('Content-Type', 'text/plain')
+      .send('x'.repeat(1_100_000));
+    expect(res.status).toBe(413);
+    const list = await request(app).get(`/api/urls/${slug}/requests`);
+    expect(list.body).toHaveLength(0);
+  });
+
+  it('keeps only the most recent 100 requests per URL', async () => {
+    const { slug } = await createUrl();
+    for (let i = 0; i < 105; i++) {
+      await request(app).post(`/${slug}/n/${i}`).send({ i });
+    }
+    const list = await request(app).get(`/api/urls/${slug}/requests`);
+    expect(list.body).toHaveLength(100);
+    expect(list.body[0].path).toBe('/n/104');
+    expect(list.body[99].path).toBe('/n/5');
+  });
+
+  it('updates last activity on each request', async () => {
+    const { slug } = await createUrl();
+    const before = db.getEndpointBySlug(slug)!;
+    db.updateEndpoint(before.id, { last_activity_at: 1000 });
+    await request(app).post(`/${slug}`).send({});
+    const after = db.getEndpointBySlug(slug)!;
+    expect(after.last_activity_at).toBeGreaterThan(1000);
+  });
+});
+
+describe('custom responses', () => {
+  it('returns the configured status and body', async () => {
+    const { slug } = await createUrl();
+    await request(app).patch(`/api/urls/${slug}`).send({ responseStatus: 404, responseBody: '{"error": "nope"}' });
+    const res = await request(app).post(`/${slug}`).send({ a: 1 });
+    expect(res.status).toBe(404);
+    expect(res.headers['content-type']).toContain('application/json');
+    expect(res.body).toEqual({ error: 'nope' });
+  });
+
+  it('serves non-JSON response bodies as text', async () => {
+    const { slug } = await createUrl();
+    await request(app).patch(`/api/urls/${slug}`).send({ responseStatus: 200, responseBody: 'plain text reply' });
+    const res = await request(app).post(`/${slug}`).send({});
+    expect(res.headers['content-type']).toContain('text/plain');
+    expect(res.text).toBe('plain text reply');
+  });
+
+  it('clamps the delay to 5 seconds', async () => {
+    const { slug } = await createUrl();
+    const patched = await request(app).patch(`/api/urls/${slug}`).send({ responseDelayMs: 99999 });
+    expect(patched.body.responseDelayMs).toBe(5000);
+  });
+});
+
+describe('regenerate', () => {
+  it('invalidates the old slug and keeps requests', async () => {
+    const { slug } = await createUrl();
+    await request(app).post(`/${slug}`).send({ a: 1 });
+    const regen = await request(app).post(`/api/urls/${slug}/regenerate`);
+    expect(regen.status).toBe(200);
+    const next = regen.body.slug;
+    expect(next).not.toBe(slug);
+    expect((await request(app).post(`/${slug}`).send({})).status).toBe(404);
+    const list = await request(app).get(`/api/urls/${next}/requests`);
+    expect(list.body).toHaveLength(1);
+  });
+});
+
+describe('export', () => {
+  it('exports all requests as JSON', async () => {
+    const { slug } = await createUrl();
+    await request(app).post(`/${slug}/a`).send({ n: 1 });
+    await request(app).post(`/${slug}/b`).send({ n: 2 });
+    const res = await request(app).get(`/api/urls/${slug}/export`);
+    expect(res.headers['content-disposition']).toContain(`${slug}.json`);
+    expect(res.body.requests).toHaveLength(2);
+    expect(res.body.url).toBe(slug);
+  });
+});
+
+describe('retention', () => {
+  it('purges URLs after 7 days of inactivity', async () => {
+    const { slug } = await createUrl();
+    await request(app).post(`/${slug}`).send({});
+    const endpoint = db.getEndpointBySlug(slug)!;
+    db.updateEndpoint(endpoint.id, { last_activity_at: Date.now() - 8 * 24 * 60 * 60 * 1000 });
+    db.purgeInactive(7 * 24 * 60 * 60 * 1000, Date.now());
+    expect(db.getEndpointBySlug(slug)).toBeUndefined();
+    expect((await request(app).post(`/${slug}`).send({})).status).toBe(404);
+  });
+
+  it('keeps URLs active within the window', async () => {
+    const { slug } = await createUrl();
+    db.purgeInactive(7 * 24 * 60 * 60 * 1000, Date.now());
+    expect(db.getEndpointBySlug(slug)).toBeDefined();
+  });
+});
+
+describe('abuse protection', () => {
+  it('rate limits URL creation', async () => {
+    let lastStatus = 201;
+    for (let i = 0; i < 40; i++) {
+      lastStatus = (await request(app).post('/api/urls')).status;
+      if (lastStatus === 429) break;
+    }
+    expect(lastStatus).toBe(429);
+  });
+
+  it('rate limits incoming webhooks per URL', async () => {
+    const { slug } = await createUrl();
+    let lastStatus = 200;
+    for (let i = 0; i < 130; i++) {
+      lastStatus = (await request(app).post(`/${slug}`).send({ i })).status;
+      if (lastStatus === 429) break;
+    }
+    expect(lastStatus).toBe(429);
+  });
+});
+
+describe('source detection', () => {
+  it.each([
+    ['Shopify-Captain-Hook', 'shopify'],
+    ['Stripe/1.0 (+https://stripe.com/docs/webhooks)', 'stripe'],
+    ['GitHub-Hookshot/044aadd', 'github'],
+    ['Atlassian Webhook HTTP Client', 'jira'],
+    ['curl/8.4.0', 'curl'],
+    [null, 'unknown']
+  ])('maps %s to %s', (ua, expected) => {
+    expect(detectSource(ua)).toBe(expected);
+  });
+});

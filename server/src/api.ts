@@ -1,0 +1,117 @@
+import type { Request, Response, Router } from 'express';
+import express from 'express';
+import type { Db, EndpointRow } from './db.js';
+import type { EventHub } from './events.js';
+import { newSlug, SLUG_PATTERN } from './slugs.js';
+import { serializeEndpoint, serializeRequest } from './serialize.js';
+import { RateLimiter } from './ratelimit.js';
+
+const MAX_RESPONSE_BODY = 16_384;
+const MAX_DELAY_MS = 5_000;
+
+function clampInt(value: unknown, min: number, max: number, fallback: number): number {
+  const n = typeof value === 'number' ? Math.floor(value) : parseInt(String(value ?? ''), 10);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(Math.max(n, min), max);
+}
+
+function endpointOr404(db: Db, req: Request, res: Response): EndpointRow | undefined {
+  const slug = req.params.slug;
+  const endpoint = SLUG_PATTERN.test(slug) ? db.getEndpointBySlug(slug) : undefined;
+  if (!endpoint) res.status(404).json({ error: 'not_found' });
+  return endpoint;
+}
+
+export function createApi(db: Db, hub: EventHub): Router {
+  const router = express.Router();
+  const createLimiter = new RateLimiter(30, 60_000);
+  router.use(express.json({ limit: '64kb' }));
+
+  function freshSlug(): string {
+    for (let i = 0; i < 20; i++) {
+      const slug = newSlug();
+      if (!db.getEndpointBySlug(slug)) return slug;
+    }
+    throw new Error('could not allocate slug');
+  }
+
+  // Create a new URL
+  router.post('/urls', (req, res) => {
+    if (!createLimiter.hit(req.ip ?? 'unknown')) {
+      res.status(429).json({ error: 'rate_limit_exceeded' });
+      return;
+    }
+    const endpoint = db.createEndpoint(freshSlug(), Date.now());
+    res.status(201).json(serializeEndpoint(endpoint, 0));
+  });
+
+  // Read URL metadata
+  router.get('/urls/:slug', (req, res) => {
+    const endpoint = endpointOr404(db, req, res);
+    if (!endpoint) return;
+    res.json(serializeEndpoint(endpoint, db.countRequests(endpoint.id)));
+  });
+
+  // Update the response returned to senders
+  router.patch('/urls/:slug', (req, res) => {
+    const endpoint = endpointOr404(db, req, res);
+    if (!endpoint) return;
+    const body = (req.body ?? {}) as Record<string, unknown>;
+    const patch: Partial<EndpointRow> = {};
+    if (body.responseStatus !== undefined) patch.response_status = clampInt(body.responseStatus, 100, 599, 200);
+    if (typeof body.responseBody === 'string') patch.response_body = body.responseBody.slice(0, MAX_RESPONSE_BODY);
+    if (body.responseDelayMs !== undefined) patch.response_delay_ms = clampInt(body.responseDelayMs, 0, MAX_DELAY_MS, 0);
+    db.updateEndpoint(endpoint.id, patch);
+    const updated = db.getEndpointById(endpoint.id)!;
+    hub.publish(endpoint.slug, { type: 'endpoint', endpoint: serializeEndpoint(updated, db.countRequests(endpoint.id)) });
+    res.json(serializeEndpoint(updated, db.countRequests(endpoint.id)));
+  });
+
+  // Regenerate the slug (old URL stops working, requests are kept)
+  router.post('/urls/:slug/regenerate', (req, res) => {
+    const endpoint = endpointOr404(db, req, res);
+    if (!endpoint) return;
+    const slug = freshSlug();
+    db.updateEndpoint(endpoint.id, { slug, last_activity_at: Date.now() });
+    res.json(serializeEndpoint(db.getEndpointById(endpoint.id)!, db.countRequests(endpoint.id)));
+  });
+
+  // List captured requests
+  router.get('/urls/:slug/requests', (req, res) => {
+    const endpoint = endpointOr404(db, req, res);
+    if (!endpoint) return;
+    res.json(db.listRequests(endpoint.id).map(serializeRequest));
+  });
+
+  // Export all requests as a JSON download
+  router.get('/urls/:slug/export', (req, res) => {
+    const endpoint = endpointOr404(db, req, res);
+    if (!endpoint) return;
+    res.setHeader('Content-Disposition', `attachment; filename="${endpoint.slug}.json"`);
+    res.json({
+      url: endpoint.slug,
+      exportedAt: new Date().toISOString(),
+      requests: db.listRequests(endpoint.id).map(serializeRequest)
+    });
+  });
+
+  // Realtime stream
+  router.get('/urls/:slug/stream', (req, res) => {
+    const endpoint = endpointOr404(db, req, res);
+    if (!endpoint) return;
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-store',
+      Connection: 'keep-alive'
+    });
+    res.write(': connected\n\n');
+    const unsubscribe = hub.subscribe(endpoint.slug, res);
+    const ping = setInterval(() => res.write(': ping\n\n'), 25_000);
+    req.on('close', () => {
+      clearInterval(ping);
+      unsubscribe();
+    });
+  });
+
+  return router;
+}
