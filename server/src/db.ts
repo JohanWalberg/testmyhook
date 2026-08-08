@@ -105,6 +105,11 @@ export function createDb(path: string) {
       return db.prepare('SELECT * FROM requests WHERE id = ?').get(Number(info.lastInsertRowid)) as RequestRow;
     },
 
+    getRequest(endpointId: number, requestId: number): RequestRow | undefined {
+      return db.prepare('SELECT * FROM requests WHERE id = ? AND endpoint_id = ?')
+        .get(requestId, endpointId) as RequestRow | undefined;
+    },
+
     listRequests(endpointId: number, limit = 200): RequestRow[] {
       return db.prepare('SELECT * FROM requests WHERE endpoint_id = ? ORDER BY id DESC LIMIT ?')
         .all(endpointId, limit) as unknown as RequestRow[];

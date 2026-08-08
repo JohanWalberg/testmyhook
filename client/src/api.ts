@@ -22,6 +22,9 @@ export const api = {
 
   listRequests: (slug: string) => fetch(`/api/urls/${slug}/requests`).then(r => json<ApiRequest[]>(r)),
 
+  getRequest: (slug: string, id: number) =>
+    fetch(`/api/urls/${slug}/requests/${id}`).then(r => json<ApiRequest>(r)),
+
   exportAllUrl: (slug: string) => `/api/urls/${slug}/export`
 };
 

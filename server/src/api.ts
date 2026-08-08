@@ -83,7 +83,19 @@ export function createApi(db: Db, hub: EventHub): Router {
     res.json(db.listRequests(endpoint.id).map(serializeRequest));
   });
 
-  // Export all requests as a JSON download
+  // Read one request with the full (untruncated) body
+  router.get('/urls/:slug/requests/:id', (req, res) => {
+    const endpoint = endpointOr404(db, req, res);
+    if (!endpoint) return;
+    const row = db.getRequest(endpoint.id, clampInt(req.params.id, 1, Number.MAX_SAFE_INTEGER, 0));
+    if (!row) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    res.json(serializeRequest(row, { fullBody: true }));
+  });
+
+  // Export all requests (full bodies) as a JSON download
   router.get('/urls/:slug/export', (req, res) => {
     const endpoint = endpointOr404(db, req, res);
     if (!endpoint) return;
@@ -91,7 +103,7 @@ export function createApi(db: Db, hub: EventHub): Router {
     res.json({
       url: endpoint.slug,
       exportedAt: new Date().toISOString(),
-      requests: db.listRequests(endpoint.id).map(serializeRequest)
+      requests: db.listRequests(endpoint.id).map(r => serializeRequest(r, { fullBody: true }))
     });
   });
 

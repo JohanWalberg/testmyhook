@@ -16,6 +16,7 @@ export interface ApiRequest {
   headers: Header[];
   body: string;
   bodyIsText: boolean;
+  bodyTruncated: boolean;
   contentType: string | null;
   source: string;
   sourceIp: string | null;

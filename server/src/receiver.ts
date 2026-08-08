@@ -5,7 +5,7 @@ import type { EventHub } from './events.js';
 import { RateLimiter } from './ratelimit.js';
 import { serializeRequest } from './serialize.js';
 
-export const MAX_BODY_BYTES = 1_048_576; // 1 MB body max (per the design's Limits section)
+export const MAX_BODY_BYTES = 10 * 1_048_576; // 10 MB body max
 export const MAX_REQUESTS_PER_URL = 100; // 100 webhooks kept per URL
 export const ENDPOINT_RATE_LIMIT = 120; // per minute per URL
 const IP_RATE_LIMIT = 600; // per minute per source IP

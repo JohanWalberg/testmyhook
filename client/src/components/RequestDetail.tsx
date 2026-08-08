@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import type { ApiEndpoint, ApiRequest } from '../types';
+import { api } from '../api';
 import { detailTime, formatSize, jsonToLines, parsedJson, rawRequestText, statusFull, toCurl, type CodeLine } from '../lib/format';
 
 const SPAN_COLORS: Record<string, string> = {
@@ -30,8 +31,10 @@ export function RequestDetail({ request, slug, endpoint }: RequestDetailProps) {
     copyTimer.current = setTimeout(() => setCopied(false), 1200);
   };
 
-  const exportJson = () => {
-    const blob = new Blob([JSON.stringify(request, null, 2)], { type: 'application/json' });
+  const exportJson = async () => {
+    // Fetch the full request — the listed copy may have a truncated body.
+    const full = await api.getRequest(slug, request.id).catch(() => request);
+    const blob = new Blob([JSON.stringify(full, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `${slug}-request-${request.id}.json`;
@@ -123,7 +126,9 @@ function BodyTab({ request, endpoint }: { request: ApiRequest; endpoint: ApiEndp
           }}
         >
           <span>{cardLabel}</span>
-          <span style={{ color: 'var(--faint)' }}>{lineCount} lines</span>
+          <span style={{ color: 'var(--faint)' }}>
+            {request.bodyTruncated ? `showing first 128 kB of ${formatSize(request.bodySize)} — export JSON for all` : `${lineCount} lines`}
+          </span>
         </div>
         <div className="mono" style={{ padding: '16px 18px', fontSize: 13, lineHeight: 1.85, color: 'var(--ink-2)', overflowX: 'auto' }}>
           {lines ? (

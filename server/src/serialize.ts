@@ -31,6 +31,9 @@ export function detectSource(userAgent: string | null): string {
   return token.slice(0, 16) || 'unknown';
 }
 
+/** Bodies above this size are truncated in list/stream payloads; the full body stays in the database and in exports. */
+export const DISPLAY_BODY_LIMIT = 131_072; // 128 KiB
+
 export interface ApiRequest {
   id: number;
   method: string;
@@ -39,6 +42,7 @@ export interface ApiRequest {
   headers: { name: string; value: string }[];
   body: string;
   bodyIsText: boolean;
+  bodyTruncated: boolean;
   contentType: string | null;
   source: string;
   sourceIp: string | null;
@@ -59,8 +63,14 @@ function decodeBody(raw: Uint8Array | null): { body: string; bodyIsText: boolean
   return { body: buf.toString('base64'), bodyIsText: false };
 }
 
-export function serializeRequest(r: RequestRow): ApiRequest {
-  const { body, bodyIsText } = decodeBody(r.raw_body);
+export function serializeRequest(r: RequestRow, opts: { fullBody?: boolean } = {}): ApiRequest {
+  const decoded = decodeBody(r.raw_body);
+  let { body } = decoded;
+  let bodyTruncated = false;
+  if (!opts.fullBody && body.length > DISPLAY_BODY_LIMIT) {
+    body = body.slice(0, DISPLAY_BODY_LIMIT);
+    bodyTruncated = true;
+  }
   return {
     id: r.id,
     method: r.method,
@@ -68,7 +78,8 @@ export function serializeRequest(r: RequestRow): ApiRequest {
     query: JSON.parse(r.query_json),
     headers: JSON.parse(r.headers_json),
     body,
-    bodyIsText,
+    bodyIsText: decoded.bodyIsText,
+    bodyTruncated,
     contentType: r.content_type,
     source: detectSource(r.user_agent),
     sourceIp: r.source_ip,

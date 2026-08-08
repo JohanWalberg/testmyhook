@@ -98,15 +98,39 @@ describe('receiving webhooks', () => {
     expect(res.status).toBe(404); // API 404, not receiver capture
   });
 
-  it('rejects payloads over 1 MB with 413', async () => {
+  it('accepts payloads up to 10 MB and rejects larger with 413', async () => {
     const { slug } = await createUrl();
+    const ok = await request(app)
+      .post(`/${slug}`)
+      .set('Content-Type', 'text/plain')
+      .send('x'.repeat(2_000_000));
+    expect(ok.status).toBe(200);
+
     const res = await request(app)
       .post(`/${slug}`)
       .set('Content-Type', 'text/plain')
-      .send('x'.repeat(1_100_000));
+      .send('x'.repeat(10_600_000));
     expect(res.status).toBe(413);
     const list = await request(app).get(`/api/urls/${slug}/requests`);
-    expect(list.body).toHaveLength(0);
+    expect(list.body).toHaveLength(1);
+  });
+
+  it('truncates large bodies for display but keeps the full body in exports', async () => {
+    const { slug } = await createUrl();
+    const big = 'y'.repeat(300_000);
+    await request(app).post(`/${slug}`).set('Content-Type', 'text/plain').send(big);
+
+    const list = await request(app).get(`/api/urls/${slug}/requests`);
+    expect(list.body[0].bodyTruncated).toBe(true);
+    expect(list.body[0].body.length).toBe(131_072);
+    expect(list.body[0].bodySize).toBe(300_000);
+
+    const single = await request(app).get(`/api/urls/${slug}/requests/${list.body[0].id}`);
+    expect(single.body.bodyTruncated).toBe(false);
+    expect(single.body.body.length).toBe(300_000);
+
+    const exported = await request(app).get(`/api/urls/${slug}/export`);
+    expect(exported.body.requests[0].body.length).toBe(300_000);
   });
 
   it('keeps only the most recent 100 requests per URL', async () => {
