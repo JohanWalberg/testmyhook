@@ -212,6 +212,37 @@ describe('export', () => {
   });
 });
 
+describe('deletion', () => {
+  it('deletes a single request', async () => {
+    const { slug } = await createUrl();
+    await request(app).post(`/${slug}/a`).send({ n: 1 });
+    await request(app).post(`/${slug}/b`).send({ n: 2 });
+    const list = await request(app).get(`/api/urls/${slug}/requests`);
+    const del = await request(app).delete(`/api/urls/${slug}/requests/${list.body[0].id}`);
+    expect(del.status).toBe(204);
+    const after = await request(app).get(`/api/urls/${slug}/requests`);
+    expect(after.body).toHaveLength(1);
+    expect(after.body[0].path).toBe('/a');
+  });
+
+  it('clears all requests for a URL', async () => {
+    const { slug } = await createUrl();
+    await request(app).post(`/${slug}`).send({ n: 1 });
+    await request(app).post(`/${slug}`).send({ n: 2 });
+    expect((await request(app).delete(`/api/urls/${slug}/requests`)).status).toBe(204);
+    const after = await request(app).get(`/api/urls/${slug}/requests`);
+    expect(after.body).toHaveLength(0);
+  });
+
+  it('deletes the URL itself, after which webhooks 404', async () => {
+    const { slug } = await createUrl();
+    await request(app).post(`/${slug}`).send({ n: 1 });
+    expect((await request(app).delete(`/api/urls/${slug}`)).status).toBe(204);
+    expect((await request(app).get(`/api/urls/${slug}`)).status).toBe(404);
+    expect((await request(app).post(`/${slug}`).send({})).status).toBe(404);
+  });
+});
+
 describe('retention', () => {
   it('purges URLs after 7 days of inactivity', async () => {
     const { slug } = await createUrl();

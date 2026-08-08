@@ -93,6 +93,12 @@ export function Inspector({ theme, onToggleTheme }: InspectorProps) {
           setSelectedId(prev => prev ?? incoming.id);
         } else if (data.type === 'endpoint') {
           setEndpoint(data.endpoint as ApiEndpoint);
+        } else if (data.type === 'request_deleted') {
+          setRequests(prev => prev.filter(r => r.id !== data.id));
+          setSelectedId(prev => (prev === data.id ? null : prev));
+        } else if (data.type === 'requests_cleared') {
+          setRequests([]);
+          setSelectedId(null);
         }
       } catch {
         // ignore malformed events
@@ -148,6 +154,41 @@ export function Inspector({ theme, onToggleTheme }: InspectorProps) {
     }
   };
 
+  const deleteRequest = async (id: number) => {
+    if (!active) return;
+    try {
+      await api.deleteRequest(active, id);
+      setRequests(prev => {
+        const left = prev.filter(r => r.id !== id);
+        setSelectedId(sel => (sel === id ? left[0]?.id ?? null : sel));
+        return left;
+      });
+    } catch {
+      // ignore
+    }
+  };
+
+  const clearRequests = async () => {
+    if (!active) return;
+    try {
+      await api.clearRequests(active);
+      setRequests([]);
+      setSelectedId(null);
+    } catch {
+      // ignore
+    }
+  };
+
+  const deleteUrl = async () => {
+    if (!active) return;
+    try {
+      await api.deleteUrl(active);
+    } catch {
+      // a dead URL should still disappear from the tabs
+    }
+    await closeUrl(active);
+  };
+
   const selected = useMemo(() => requests.find(r => r.id === selectedId) ?? null, [requests, selectedId]);
 
   return (
@@ -169,6 +210,8 @@ export function Inspector({ theme, onToggleTheme }: InspectorProps) {
         onClose={closeUrl}
         onRegenerate={regenerate}
         onUpdateResponse={updateResponse}
+        onClearRequests={clearRequests}
+        onDeleteUrl={deleteUrl}
       />
       <main
         style={{
@@ -179,7 +222,7 @@ export function Inspector({ theme, onToggleTheme }: InspectorProps) {
         }}
       >
         {selected && active && endpoint ? (
-          <RequestDetail request={selected} slug={active} endpoint={endpoint} />
+          <RequestDetail request={selected} slug={active} endpoint={endpoint} onDelete={() => deleteRequest(selected.id)} />
         ) : (
           <EmptyHero slug={active} />
         )}

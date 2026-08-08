@@ -24,6 +24,8 @@ interface SidebarProps {
   onClose: (slug: string) => void;
   onRegenerate: () => void;
   onUpdateResponse: (input: { responseStatus?: number; responseBody?: string; responseDelayMs?: number }) => void;
+  onClearRequests: () => void;
+  onDeleteUrl: () => void;
 }
 
 export function Sidebar(props: SidebarProps) {
@@ -248,6 +250,8 @@ export function Sidebar(props: SidebarProps) {
           onCopy={copyUrl}
           onRegenerate={props.onRegenerate}
           onUpdateResponse={props.onUpdateResponse}
+          onClearRequests={props.onClearRequests}
+          onDeleteUrl={props.onDeleteUrl}
           onClose={() => setMenuOpen(false)}
         />
       )}

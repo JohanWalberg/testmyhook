@@ -133,6 +133,19 @@ export function createDb(path: string) {
       return row.n;
     },
 
+    deleteRequest(endpointId: number, requestId: number): boolean {
+      const info = db.prepare('DELETE FROM requests WHERE id = ? AND endpoint_id = ?').run(requestId, endpointId);
+      return info.changes > 0;
+    },
+
+    clearRequests(endpointId: number): void {
+      db.prepare('DELETE FROM requests WHERE endpoint_id = ?').run(endpointId);
+    },
+
+    deleteEndpoint(id: number): void {
+      db.prepare('DELETE FROM endpoints WHERE id = ?').run(id);
+    },
+
     trimRequests(endpointId: number, max: number): void {
       db.prepare(`
         DELETE FROM requests WHERE endpoint_id = ? AND id NOT IN (

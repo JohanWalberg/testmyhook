@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Logo } from '../components/Logo';
+import { CodeBlock, Prompt } from '../components/CodeBlock';
+import { loadSlugs } from '../lib/storage';
 
 const STEPS = [
   {
@@ -27,7 +29,9 @@ const FACTS = [
 
 export function Docs() {
   const navigate = useNavigate();
-  const host = window.location.host;
+  // Show the visitor's own URL in the examples when they have one.
+  const slug = loadSlugs()[0] ?? 'tiny-snow-k4d92h';
+  const target = `${window.location.origin}/${slug}/orders`;
   return (
     <div style={{ minHeight: '100%', background: 'var(--main-bg)', overflowY: 'auto' }}>
       <div style={{ maxWidth: 1264, margin: '0 auto', padding: '64px 88px 72px', display: 'flex', flexDirection: 'column', gap: 48 }}>
@@ -52,19 +56,17 @@ export function Docs() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 28 }}>
-          <div className="mono" style={{ background: '#16130F', borderRadius: 9, padding: '20px 22px', fontSize: 13, lineHeight: 1.9, color: '#E6E0D4', overflowX: 'auto' }}>
-            <div style={{ color: '#8C8377', fontSize: 11, letterSpacing: '0.14em', marginBottom: 10 }}>CURL</div>
-            <div><span style={{ color: '#7E9C86' }}>$</span> curl -X POST \</div>
-            <div style={{ paddingLeft: 20 }}>{window.location.origin}/tiny-snow-k4d92h/orders \</div>
+          <CodeBlock label="CURL" copyText={`curl -X POST ${target} -d '{"hello":"world"}'`}>
+            <div><Prompt />curl -X POST \</div>
+            <div style={{ paddingLeft: 20 }}>{target} \</div>
             <div style={{ paddingLeft: 20 }}>-d <span style={{ color: '#E0A45C' }}>{`'{"hello":"world"}'`}</span></div>
-          </div>
-          <div className="mono" style={{ background: '#16130F', borderRadius: 9, padding: '20px 22px', fontSize: 13, lineHeight: 1.9, color: '#E6E0D4', overflowX: 'auto' }}>
-            <div style={{ color: '#8C8377', fontSize: 11, letterSpacing: '0.14em', marginBottom: 10 }}>JAVASCRIPT</div>
+          </CodeBlock>
+          <CodeBlock label="JAVASCRIPT" copyText={`await fetch("${target}", { method: "POST", body: JSON.stringify({ hello: "world" }) })`}>
             <div><span style={{ color: '#B58FD6' }}>await</span> fetch(<span style={{ color: '#E0A45C' }}>"{window.location.origin}</span></div>
-            <div style={{ paddingLeft: 20 }}><span style={{ color: '#E0A45C' }}>/tiny-snow-k4d92h/orders"</span>, {'{'}</div>
+            <div style={{ paddingLeft: 20 }}><span style={{ color: '#E0A45C' }}>/{slug}/orders"</span>, {'{'}</div>
             <div style={{ paddingLeft: 20 }}>method: <span style={{ color: '#E0A45C' }}>"POST"</span>, body: json</div>
             <div>{'})'}</div>
-          </div>
+          </CodeBlock>
         </div>
 
         <div style={{ display: 'flex', gap: 56, paddingTop: 8, borderTop: '1px solid var(--border)', flexWrap: 'wrap' }}>

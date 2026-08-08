@@ -13,11 +13,14 @@ interface UrlMenuProps {
   onCopy: () => void;
   onRegenerate: () => void;
   onUpdateResponse: (input: { responseStatus?: number; responseBody?: string; responseDelayMs?: number }) => void;
+  onClearRequests: () => void;
+  onDeleteUrl: () => void;
   onClose: () => void;
 }
 
-export function UrlMenu({ slug, endpoint, theme, onToggleTheme, onCopy, onRegenerate, onUpdateResponse, onClose }: UrlMenuProps) {
+export function UrlMenu({ slug, endpoint, theme, onToggleTheme, onCopy, onRegenerate, onUpdateResponse, onClearRequests, onDeleteUrl, onClose }: UrlMenuProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const [confirming, setConfirming] = useState<'clear' | 'delete' | null>(null);
   const isPreset = STATUS_PRESETS.includes(endpoint.responseStatus);
   const [customMode, setCustomMode] = useState(!isPreset);
   const [customStatus, setCustomStatus] = useState(String(endpoint.responseStatus));
@@ -123,6 +126,36 @@ export function UrlMenu({ slug, endpoint, theme, onToggleTheme, onCopy, onRegene
         >
           ⇩ <span>Export all requests as JSON</span>
         </a>
+        <div
+          className="mono menuRow"
+          onClick={() => {
+            if (confirming !== 'clear') {
+              setConfirming('clear');
+              return;
+            }
+            onClearRequests();
+            setConfirming(null);
+            onClose();
+          }}
+          style={{ padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, fontSize: 13, color: 'var(--accent)' }}
+        >
+          ⌫ <span>{confirming === 'clear' ? 'Click again to clear all requests' : 'Clear all requests'}</span>
+        </div>
+        <div
+          className="mono menuRow"
+          onClick={() => {
+            if (confirming !== 'delete') {
+              setConfirming('delete');
+              return;
+            }
+            onDeleteUrl();
+            setConfirming(null);
+            onClose();
+          }}
+          style={{ padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, fontSize: 13, color: 'var(--accent)' }}
+        >
+          ✕ <span>{confirming === 'delete' ? 'Click again to delete this URL' : 'Delete this URL'}</span>
+        </div>
       </div>
 
       {sectionLabel('Response returned to sender', true)}

@@ -17,9 +17,10 @@ interface RequestDetailProps {
   request: ApiRequest;
   slug: string;
   endpoint: ApiEndpoint;
+  onDelete: () => void;
 }
 
-export function RequestDetail({ request, slug, endpoint }: RequestDetailProps) {
+export function RequestDetail({ request, slug, endpoint, onDelete }: RequestDetailProps) {
   const [tab, setTab] = useState<Tab>('body');
   const [copied, setCopied] = useState(false);
   const copyTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -68,6 +69,7 @@ export function RequestDetail({ request, slug, endpoint }: RequestDetailProps) {
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
             <button className="ghostBtn" onClick={copyCurl}>{copied ? 'copied!' : 'copy cURL'}</button>
             <button className="ghostBtn" onClick={exportJson}>export JSON</button>
+            <button className="ghostBtn" onClick={onDelete} style={{ color: 'var(--accent)' }}>delete</button>
           </div>
         </div>
         <div className="mono" style={{ display: 'flex', gap: 26, fontSize: 12.5 }}>

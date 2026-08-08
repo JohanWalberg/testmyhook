@@ -1,5 +1,8 @@
+import { CodeBlock, Prompt } from './CodeBlock';
+
 export function EmptyHero({ slug }: { slug: string | null }) {
-  const url = `${window.location.host}/${slug ?? '…'}`;
+  const target = `${window.location.origin}/${slug ?? '…'}`;
+  const copyCommand = `curl -X POST ${target} -H "Content-Type: application/json" -d '{"hello":"world"}'`;
   return (
     <div style={{ flex: 1, padding: '96px 88px', display: 'flex', flexDirection: 'column', justifyContent: 'center', overflowY: 'auto' }}>
       <div style={{ maxWidth: 660, display: 'flex', flexDirection: 'column', gap: 28 }}>
@@ -20,19 +23,18 @@ export function EmptyHero({ slug }: { slug: string | null }) {
           </p>
           <p style={{ margin: 0 }}>No account. No login. URLs are deleted after 7 days of inactivity.</p>
         </div>
-        <div
-          className="mono"
-          style={{ background: '#16130F', borderRadius: 9, padding: '18px 20px', fontSize: 13, lineHeight: 1.9, color: '#E6E0D4', maxWidth: 560, overflowX: 'auto' }}
-        >
-          <div>
-            <span style={{ color: '#7E9C86' }}>$</span> curl -X POST {window.location.origin}/{slug ?? '…'} \
-          </div>
-          <div style={{ paddingLeft: 20 }}>
-            -H <span style={{ color: '#E0A45C' }}>"Content-Type: application/json"</span> \
-          </div>
-          <div style={{ paddingLeft: 20 }}>
-            -d <span style={{ color: '#E0A45C' }}>{`'{"hello":"world"}'`}</span>
-          </div>
+        <div style={{ maxWidth: 560 }}>
+          <CodeBlock copyText={copyCommand}>
+            <div>
+              <Prompt />curl -X POST {target} \
+            </div>
+            <div style={{ paddingLeft: 20 }}>
+              -H <span style={{ color: '#E0A45C' }}>"Content-Type: application/json"</span> \
+            </div>
+            <div style={{ paddingLeft: 20 }}>
+              -d <span style={{ color: '#E0A45C' }}>{`'{"hello":"world"}'`}</span>
+            </div>
+          </CodeBlock>
         </div>
       </div>
     </div>
