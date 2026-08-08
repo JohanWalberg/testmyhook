@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import type { ApiEndpoint } from '../types';
 import { api } from '../api';
 import type { Theme } from '../lib/storage';
@@ -16,9 +16,11 @@ interface UrlMenuProps {
   onClearRequests: () => void;
   onDeleteUrl: () => void;
   onClose: () => void;
+  /** The button that opened the menu — its clicks toggle, so outside-click must ignore it. */
+  anchorRef?: RefObject<HTMLElement | null>;
 }
 
-export function UrlMenu({ slug, endpoint, theme, onToggleTheme, onCopy, onRegenerate, onUpdateResponse, onClearRequests, onDeleteUrl, onClose }: UrlMenuProps) {
+export function UrlMenu({ slug, endpoint, theme, onToggleTheme, onCopy, onRegenerate, onUpdateResponse, onClearRequests, onDeleteUrl, onClose, anchorRef }: UrlMenuProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [confirming, setConfirming] = useState<'clear' | 'delete' | null>(null);
   const isPreset = STATUS_PRESETS.includes(endpoint.responseStatus);
@@ -31,7 +33,9 @@ export function UrlMenu({ slug, endpoint, theme, onToggleTheme, onCopy, onRegene
   // Close on outside click / Escape; ⌘R regenerates, ⌘C copies while open.
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+      const target = e.target as Node;
+      if (anchorRef?.current?.contains(target)) return; // the toggle button handles itself
+      if (ref.current && !ref.current.contains(target)) onClose();
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();

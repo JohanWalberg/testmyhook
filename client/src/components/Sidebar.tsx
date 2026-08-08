@@ -35,14 +35,18 @@ export function Sidebar(props: SidebarProps) {
   const [copied, setCopied] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const pageMenuRef = useRef<HTMLDivElement>(null);
+  const pageMenuButtonRef = useRef<HTMLDivElement>(null);
+  const urlMenuButtonRef = useRef<HTMLButtonElement>(null);
   const copyTimer = useRef<ReturnType<typeof setTimeout>>();
   const navigate = useNavigate();
 
-  // Close the page menu on outside click.
+  // Close the page menu on outside click (its own button toggles itself).
   useEffect(() => {
     if (!pageMenuOpen) return;
     const onDown = (e: MouseEvent) => {
-      if (pageMenuRef.current && !pageMenuRef.current.contains(e.target as Node)) setPageMenuOpen(false);
+      const target = e.target as Node;
+      if (pageMenuButtonRef.current?.contains(target)) return;
+      if (pageMenuRef.current && !pageMenuRef.current.contains(target)) setPageMenuOpen(false);
     };
     document.addEventListener('mousedown', onDown);
     return () => document.removeEventListener('mousedown', onDown);
@@ -85,6 +89,7 @@ export function Sidebar(props: SidebarProps) {
       <div style={{ padding: '22px 22px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
         <Logo cursor />
         <div
+          ref={pageMenuButtonRef}
           className="mono hoverInk clickable"
           onClick={() => setPageMenuOpen(o => !o)}
           title="Menu"
@@ -192,6 +197,7 @@ export function Sidebar(props: SidebarProps) {
           </span>
           <button className="copyBtn" onClick={copyUrl}>{copied ? 'COPIED' : 'COPY'}</button>
           <button
+            ref={urlMenuButtonRef}
             className="mono"
             onClick={() => setMenuOpen(o => !o)}
             title="URL options"
@@ -261,6 +267,7 @@ export function Sidebar(props: SidebarProps) {
           onClearRequests={props.onClearRequests}
           onDeleteUrl={props.onDeleteUrl}
           onClose={() => setMenuOpen(false)}
+          anchorRef={urlMenuButtonRef}
         />
       )}
     </div>
