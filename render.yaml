@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: testmyhook
+    runtime: docker
+    plan: starter # a paid plan is required for the persistent disk below
+    healthCheckPath: /healthz
+    envVars:
+      - key: DB_PATH
+        value: /data/testmyhook.db
+    disk:
+      name: testmyhook-data
+      mountPath: /data
+      sizeGB: 10
