@@ -220,6 +220,35 @@ describe('abuse protection', () => {
   });
 });
 
+describe('operations', () => {
+  it('exposes a health check', async () => {
+    const res = await request(app).get('/healthz');
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+  });
+
+  it('sends CORS headers on receiver responses so browser senders can read them', async () => {
+    const { slug } = await createUrl();
+    const res = await request(app)
+      .post(`/${slug}`)
+      .set('Origin', 'https://example.com')
+      .send({ a: 1 });
+    expect(res.headers['access-control-allow-origin']).toBe('*');
+  });
+
+  it('answers CORS preflight with the requested headers allowed', async () => {
+    const { slug } = await createUrl();
+    const res = await request(app)
+      .options(`/${slug}/orders`)
+      .set('Origin', 'https://example.com')
+      .set('Access-Control-Request-Method', 'POST')
+      .set('Access-Control-Request-Headers', 'content-type,x-custom');
+    expect(res.status).toBe(200);
+    expect(res.headers['access-control-allow-origin']).toBe('*');
+    expect(res.headers['access-control-allow-headers']).toBe('content-type,x-custom');
+  });
+});
+
 describe('source detection', () => {
   it.each([
     ['Shopify-Captain-Hook', 'shopify'],

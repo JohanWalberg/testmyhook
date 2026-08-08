@@ -48,6 +48,12 @@ export function createReceiver(db: Db, hub: EventHub): Router {
     const started = Date.now();
     res.setHeader('X-Robots-Tag', 'noindex, nofollow');
     res.setHeader('Cache-Control', 'no-store');
+    // Webhooks are usually server-to-server, but the docs show a browser
+    // fetch() example — allow cross-origin senders to read the response.
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD');
+    res.setHeader('Access-Control-Allow-Headers', (req.headers['access-control-request-headers'] as string | undefined) ?? '*');
+    res.setHeader('Access-Control-Expose-Headers', '*');
 
     const slug = req.params[0];
     const subpath = req.params[1] || '/';

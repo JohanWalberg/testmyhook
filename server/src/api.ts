@@ -102,7 +102,8 @@ export function createApi(db: Db, hub: EventHub): Router {
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-store',
-      Connection: 'keep-alive'
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no' // keep nginx from buffering the event stream
     });
     res.write(': connected\n\n');
     const unsubscribe = hub.subscribe(endpoint.slug, res);

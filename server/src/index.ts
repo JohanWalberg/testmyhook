@@ -26,6 +26,20 @@ if (existsSync(clientDist)) {
   });
 }
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`TestMyHook server listening on http://localhost:${PORT}`);
 });
+
+// Graceful shutdown: stop accepting connections, drop open ones (incl. SSE
+// streams, which would otherwise keep the server alive), close the database.
+function shutdown(signal: string) {
+  console.log(`${signal} received, shutting down`);
+  server.close(() => {
+    db.close();
+    process.exit(0);
+  });
+  server.closeAllConnections();
+  setTimeout(() => process.exit(1), 5000).unref();
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

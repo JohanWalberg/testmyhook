@@ -17,6 +17,10 @@ export function createApp(db: Db) {
     next();
   });
 
+  app.get('/healthz', (_req, res) => {
+    res.json({ ok: true, uptime: Math.round(process.uptime()) });
+  });
+
   app.use('/api', createApi(db, hub));
 
   // Public webhook receiver — /<slug> and /<slug>/<subpath>, isolated from app routes.
