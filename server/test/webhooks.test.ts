@@ -280,6 +280,26 @@ describe('operations', () => {
   });
 });
 
+describe('stats', () => {
+  it('tracks all-time counters and live numbers', async () => {
+    const before = await request(app).get('/api/stats');
+    expect(before.body.urlsCreated).toBe(0);
+    expect(before.body.webhooksReceived).toBe(0);
+    expect(before.body.since).toBeGreaterThan(0);
+
+    const { slug } = await createUrl();
+    await request(app).post(`/${slug}/a`).send({ n: 1 });
+    await request(app).post(`/${slug}/b`).send({ n: 2 });
+
+    const after = await request(app).get('/api/stats');
+    expect(after.body.urlsCreated).toBe(1);
+    expect(after.body.urlsActive).toBe(1);
+    expect(after.body.webhooksReceived).toBe(2);
+    expect(after.body.webhooksStored).toBe(2);
+    expect(after.body.bytesStored).toBeGreaterThan(0);
+  });
+});
+
 describe('source detection', () => {
   it.each([
     ['Shopify-Captain-Hook', 'shopify'],

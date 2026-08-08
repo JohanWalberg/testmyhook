@@ -23,7 +23,8 @@ if (existsSync(clientDist)) {
   // Hashed assets can cache forever; index.html must revalidate so users
   // see new deploys without a hard refresh.
   app.use(express.static(clientDist, { index: false, maxAge: '1y', immutable: true }));
-  app.get(/^\/(?!api\b).*/, (_req, res) => {
+  app.get(/^\/(?!api\b).*/, (req, res) => {
+    if (req.path === '/') db.bumpCounter('page_visits');
     res.setHeader('Cache-Control', 'no-cache');
     res.sendFile(join(clientDist, 'index.html'));
   });

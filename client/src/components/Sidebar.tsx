@@ -29,10 +29,22 @@ interface SidebarProps {
 export function Sidebar(props: SidebarProps) {
   const { theme, onToggleTheme, slugs, active, endpoint, requests, selectedId, search, live } = props;
   const [menuOpen, setMenuOpen] = useState(false);
+  const [pageMenuOpen, setPageMenuOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  const pageMenuRef = useRef<HTMLDivElement>(null);
   const copyTimer = useRef<ReturnType<typeof setTimeout>>();
   const navigate = useNavigate();
+
+  // Close the page menu on outside click.
+  useEffect(() => {
+    if (!pageMenuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (pageMenuRef.current && !pageMenuRef.current.contains(e.target as Node)) setPageMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [pageMenuOpen]);
 
   const copyUrl = () => {
     if (!active) return;
@@ -68,16 +80,44 @@ export function Sidebar(props: SidebarProps) {
         display: 'flex', flexDirection: 'column', background: 'var(--sidebar)', position: 'relative'
       }}
     >
-      <div style={{ padding: '22px 22px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ padding: '22px 22px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
         <Logo cursor />
         <div
           className="mono hoverInk clickable"
-          onClick={() => navigate('/how')}
-          title="How to use"
-          style={{ fontSize: 16, color: 'var(--muted)', padding: '2px 8px', border: '1px solid var(--border-strong)', borderRadius: 6 }}
+          onClick={() => setPageMenuOpen(o => !o)}
+          title="Menu"
+          style={{
+            fontSize: 16, color: pageMenuOpen ? 'var(--accent)' : 'var(--muted)', padding: '2px 8px',
+            border: `1px solid ${pageMenuOpen ? 'var(--accent)' : 'var(--border-strong)'}`, borderRadius: 6
+          }}
         >
           ···
         </div>
+        {pageMenuOpen && (
+          <div
+            ref={pageMenuRef}
+            style={{
+              position: 'absolute', right: 22, top: 56, width: 180, zIndex: 40,
+              background: 'var(--card)', border: '1px solid var(--frame-border)', borderRadius: 11,
+              boxShadow: 'var(--pop-shadow)', overflow: 'hidden'
+            }}
+          >
+            <div
+              className="mono menuRow"
+              onClick={() => navigate('/how')}
+              style={{ padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, fontSize: 13, color: 'var(--ink)' }}
+            >
+              ? <span>How to use</span>
+            </div>
+            <div
+              className="mono menuRow"
+              onClick={() => navigate('/stats')}
+              style={{ padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, fontSize: 13, color: 'var(--ink)', borderTop: '1px solid var(--border-soft)' }}
+            >
+              # <span>Stats</span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6, padding: '0 22px 12px' }}>

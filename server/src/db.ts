@@ -67,7 +67,13 @@ export function createDb(path: string) {
 
     CREATE INDEX IF NOT EXISTS idx_requests_endpoint ON requests(endpoint_id, id DESC);
     CREATE INDEX IF NOT EXISTS idx_endpoints_activity ON endpoints(last_activity_at);
+
+    CREATE TABLE IF NOT EXISTS counters (
+      key TEXT PRIMARY KEY,
+      value INTEGER NOT NULL DEFAULT 0
+    );
   `);
+  db.prepare('INSERT OR IGNORE INTO counters (key, value) VALUES (?, ?)').run('since', Date.now());
 
   return {
     createEndpoint(slug: string, now: number): EndpointRow {
@@ -130,6 +136,30 @@ export function createDb(path: string) {
 
     purgeInactive(maxIdleMs: number, now: number): void {
       db.prepare('DELETE FROM endpoints WHERE last_activity_at + ? < ?').run(maxIdleMs, now);
+    },
+
+    bumpCounter(key: string, delta = 1): void {
+      db.prepare(`
+        INSERT INTO counters (key, value) VALUES (?, ?)
+        ON CONFLICT(key) DO UPDATE SET value = value + excluded.value
+      `).run(key, delta);
+    },
+
+    /** Live + all-time usage numbers. Counters survive trimming and purging; the rest is queried live. */
+    stats() {
+      const counter = (key: string): number =>
+        ((db.prepare('SELECT value FROM counters WHERE key = ?').get(key) as { value: number } | undefined)?.value ?? 0);
+      const one = (sql: string): number =>
+        Number((db.prepare(sql).get() as Record<string, number | null>)['n'] ?? 0);
+      return {
+        since: counter('since'),
+        urlsCreated: counter('urls_created'),
+        webhooksReceived: counter('webhooks_received'),
+        pageVisits: counter('page_visits'),
+        urlsActive: one('SELECT COUNT(*) AS n FROM endpoints'),
+        webhooksStored: one('SELECT COUNT(*) AS n FROM requests'),
+        bytesStored: one('SELECT COALESCE(SUM(body_size), 0) AS n FROM requests')
+      };
     },
 
     close(): void {

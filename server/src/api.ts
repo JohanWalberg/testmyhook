@@ -42,7 +42,13 @@ export function createApi(db: Db, hub: EventHub): Router {
       return;
     }
     const endpoint = db.createEndpoint(freshSlug(), Date.now());
+    db.bumpCounter('urls_created');
     res.status(201).json(serializeEndpoint(endpoint, 0));
+  });
+
+  // Public usage stats for the /stats page
+  router.get('/stats', (_req, res) => {
+    res.json(db.stats());
   });
 
   // Read URL metadata

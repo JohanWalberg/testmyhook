@@ -107,6 +107,7 @@ export function createReceiver(db: Db, hub: EventHub): Router {
     });
     db.trimRequests(endpoint.id, MAX_REQUESTS_PER_URL);
     db.updateEndpoint(endpoint.id, { last_activity_at: started });
+    db.bumpCounter('webhooks_received');
     hub.publish(slug, { type: 'request', request: serializeRequest(stored) });
 
     const send = () => {
