@@ -8,6 +8,9 @@ import { coarseLocation } from './geo.js';
 
 export const MAX_BODY_BYTES = 10 * 1_048_576; // 10 MB body max
 export const MAX_REQUESTS_PER_URL = 500; // webhooks kept per URL
+export const MAX_URL_BYTES = 50 * 1_048_576; // total payload bytes kept per URL
+export const GLOBAL_BYTES_HIGH = 6 * 1_073_741_824; // evict when total payloads exceed 6 GB
+export const GLOBAL_BYTES_LOW = 5.5 * 1_073_741_824; // ...down to 5.5 GB
 export const ENDPOINT_RATE_LIMIT = 120; // per minute per URL
 const IP_RATE_LIMIT = 600; // per minute per source IP
 const MAX_DELAY_MS = 5_000;
@@ -111,6 +114,10 @@ export function createReceiver(db: Db, hub: EventHub): Router {
       duration_ms: Date.now() - started
     });
     db.trimRequests(endpoint.id, MAX_REQUESTS_PER_URL);
+    db.trimToByteBudget(endpoint.id, MAX_URL_BYTES);
+    if (body.length > 0 && db.totalStoredBytes() > GLOBAL_BYTES_HIGH) {
+      db.evictToGlobalBudget(GLOBAL_BYTES_LOW);
+    }
     db.updateEndpoint(endpoint.id, { last_activity_at: started });
     db.bumpCounter('webhooks_received');
     const location = coarseLocation(sourceIp);

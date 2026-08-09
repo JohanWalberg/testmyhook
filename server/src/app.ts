@@ -29,7 +29,7 @@ export function createApp(db: Db) {
   });
 
   app.get('/healthz', (_req, res) => {
-    res.json({ ok: true, uptime: Math.round(process.uptime()) });
+    res.json({ ok: true, uptime: Math.round(process.uptime()), storedBytes: db.totalStoredBytes() });
   });
 
   // Public pages (/, /how, /stats) are indexable; robots.txt keeps crawlers

@@ -256,6 +256,56 @@ describe('deletion', () => {
   });
 });
 
+describe('storage budgets', () => {
+  function insert(endpointId: number, size: number, path = '/x') {
+    db.insertRequest({
+      endpoint_id: endpointId, method: 'POST', path,
+      query_json: '[]', headers_json: '[]', raw_body: new Uint8Array(size), content_type: null,
+      source_ip: null, user_agent: null, body_size: size, received_at: Date.now(),
+      response_status: 200, response_body: '', response_delay_ms: 0, duration_ms: 0
+    });
+  }
+
+  it('trims oldest requests when a URL exceeds its byte budget, keeping the newest', async () => {
+    const { slug } = await createUrl();
+    const endpoint = db.getEndpointBySlug(slug)!;
+    for (let i = 0; i < 10; i++) insert(endpoint.id, 100, `/n/${i}`);
+    expect(db.endpointStoredBytes(endpoint.id)).toBe(1000);
+    db.trimToByteBudget(endpoint.id, 350);
+    expect(db.endpointStoredBytes(endpoint.id)).toBeLessThanOrEqual(350);
+    const left = db.listRequests(endpoint.id);
+    expect(left[0].path).toBe('/n/9'); // newest survives
+  });
+
+  it('never deletes the only remaining request even when over budget', async () => {
+    const { slug } = await createUrl();
+    const endpoint = db.getEndpointBySlug(slug)!;
+    insert(endpoint.id, 500);
+    db.trimToByteBudget(endpoint.id, 100);
+    expect(db.countRequests(endpoint.id)).toBe(1);
+  });
+
+  it('evicts oldest requests globally across URLs to fit the global budget', async () => {
+    const a = db.getEndpointBySlug((await createUrl()).slug)!;
+    const b = db.getEndpointBySlug((await createUrl()).slug)!;
+    for (let i = 0; i < 5; i++) insert(a.id, 100, `/a/${i}`);
+    for (let i = 0; i < 5; i++) insert(b.id, 100, `/b/${i}`);
+    expect(db.totalStoredBytes()).toBe(1000);
+    const evicted = db.evictToGlobalBudget(400);
+    expect(evicted).toBeGreaterThan(0);
+    expect(db.totalStoredBytes()).toBeLessThanOrEqual(400);
+    // oldest went first: endpoint A's early rows are gone, B's late rows remain
+    expect(db.listRequests(b.id).some(r => r.path === '/b/4')).toBe(true);
+  });
+
+  it('exposes storedBytes on the health check', async () => {
+    const { slug } = await createUrl();
+    await request(app).post(`/${slug}`).set('Content-Type', 'text/plain').send('x'.repeat(1234));
+    const res = await request(app).get('/healthz');
+    expect(res.body.storedBytes).toBeGreaterThanOrEqual(1234);
+  });
+});
+
 describe('retention', () => {
   it('purges URLs after 7 days of inactivity', async () => {
     const { slug } = await createUrl();

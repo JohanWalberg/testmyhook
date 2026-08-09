@@ -24,7 +24,7 @@ const STEPS = [
 
 const FACTS = [
   { label: 'Retention', body: 'URLs are deleted after 7 days of inactivity.' },
-  { label: 'Limits', body: '500 webhooks kept per URL · 10 MB body max.' },
+  { label: 'Limits', body: '500 webhooks kept per URL · 10 MB body max · 50 MB total per URL.' },
   { label: 'Accounts', body: 'None. The site is open to everyone.' },
   { label: 'Sharing', body: 'Share inbox link (in the URL menu) gives anyone the same live view — the link is the key.' }
 ];

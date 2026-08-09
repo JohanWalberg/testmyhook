@@ -69,6 +69,8 @@ export function createDb(path: string) {
 
     CREATE INDEX IF NOT EXISTS idx_requests_endpoint ON requests(endpoint_id, id DESC);
     CREATE INDEX IF NOT EXISTS idx_endpoints_activity ON endpoints(last_activity_at);
+    -- Covering index so storage accounting reads integers, never blob pages.
+    CREATE INDEX IF NOT EXISTS idx_requests_ep_size ON requests(endpoint_id, id, body_size);
 
     CREATE TABLE IF NOT EXISTS counters (
       key TEXT PRIMARY KEY,
@@ -169,6 +171,56 @@ export function createDb(path: string) {
           SELECT id FROM requests WHERE endpoint_id = ? ORDER BY id DESC LIMIT ?
         )
       `).run(endpointId, endpointId, max);
+    },
+
+    endpointStoredBytes(endpointId: number): number {
+      const row = db.prepare(
+        'SELECT COALESCE(SUM(body_size), 0) AS n FROM requests INDEXED BY idx_requests_ep_size WHERE endpoint_id = ?'
+      ).get(endpointId) as { n: number };
+      return row.n;
+    },
+
+    totalStoredBytes(): number {
+      const row = db.prepare(
+        'SELECT COALESCE(SUM(body_size), 0) AS n FROM requests INDEXED BY idx_requests_ep_size'
+      ).get() as { n: number };
+      return row.n;
+    },
+
+    /** Delete oldest requests of a URL until its payload bytes fit the budget. Never deletes the newest request. */
+    trimToByteBudget(endpointId: number, budgetBytes: number): void {
+      let bytes = this.endpointStoredBytes(endpointId);
+      while (bytes > budgetBytes) {
+        const oldest = db.prepare(
+          'SELECT id, body_size FROM requests INDEXED BY idx_requests_ep_size WHERE endpoint_id = ? ORDER BY id ASC LIMIT 25'
+        ).all(endpointId) as unknown as { id: number; body_size: number }[];
+        if (oldest.length <= 1) break; // keep at least the newest request
+        const victims = oldest.slice(0, Math.max(1, oldest.length - 1));
+        for (const v of victims) {
+          db.prepare('DELETE FROM requests WHERE id = ?').run(v.id);
+          bytes -= v.body_size;
+          if (bytes <= budgetBytes) break;
+        }
+      }
+    },
+
+    /** Global backstop: evict oldest requests across all URLs until total payload bytes fit the budget. */
+    evictToGlobalBudget(budgetBytes: number): number {
+      let evicted = 0;
+      let total = this.totalStoredBytes();
+      while (total > budgetBytes) {
+        const oldest = db.prepare(
+          'SELECT id, body_size FROM requests ORDER BY id ASC LIMIT 50'
+        ).all() as unknown as { id: number; body_size: number }[];
+        if (oldest.length === 0) break;
+        for (const v of oldest) {
+          db.prepare('DELETE FROM requests WHERE id = ?').run(v.id);
+          total -= v.body_size;
+          evicted++;
+          if (total <= budgetBytes) break;
+        }
+      }
+      return evicted;
     },
 
     purgeInactive(maxIdleMs: number, now: number): void {
