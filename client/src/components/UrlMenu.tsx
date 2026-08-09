@@ -23,6 +23,15 @@ interface UrlMenuProps {
 export function UrlMenu({ slug, endpoint, theme, onToggleTheme, onCopy, onRegenerate, onUpdateResponse, onClearRequests, onDeleteUrl, onClose, anchorRef }: UrlMenuProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [confirming, setConfirming] = useState<'clear' | 'delete' | null>(null);
+  const [shared, setShared] = useState(false);
+  const shareTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  const copyShareLink = () => {
+    navigator.clipboard?.writeText(`${window.location.origin}/view/${slug}`).catch(() => {});
+    clearTimeout(shareTimer.current);
+    setShared(true);
+    shareTimer.current = setTimeout(() => setShared(false), 1200);
+  };
   const isPreset = STATUS_PRESETS.includes(endpoint.responseStatus);
   const [customMode, setCustomMode] = useState(!isPreset);
   const [customStatus, setCustomStatus] = useState(String(endpoint.responseStatus));
@@ -121,6 +130,13 @@ export function UrlMenu({ slug, endpoint, theme, onToggleTheme, onCopy, onRegene
         >
           ⧉ <span>Copy URL</span>
           <span className="mono" style={{ marginLeft: 'auto', color: 'var(--faint)', fontSize: 11 }}>⌘C</span>
+        </div>
+        <div
+          className="mono menuRow"
+          onClick={copyShareLink}
+          style={{ padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 12, fontSize: 13, color: shared ? 'var(--green)' : 'var(--ink)' }}
+        >
+          ⇪ <span>{shared ? 'Link copied — anyone with it sees this inbox' : 'Share inbox link'}</span>
         </div>
         <a
           className="mono menuRow"

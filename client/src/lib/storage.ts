@@ -15,6 +15,13 @@ export function saveSlugs(slugs: string[]): void {
   localStorage.setItem(SLUGS_KEY, JSON.stringify(slugs.slice(0, 20)));
 }
 
+/** Add a slug to the tab list (deduped) and make it the active one. */
+export function addSlug(slug: string): void {
+  const slugs = loadSlugs();
+  saveSlugs(slugs.includes(slug) ? slugs : [...slugs, slug]);
+  saveActiveSlug(slug);
+}
+
 export function loadActiveSlug(): string | null {
   return localStorage.getItem(ACTIVE_KEY);
 }

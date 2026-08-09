@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Inspector } from './pages/Inspector';
 import { Docs } from './pages/Docs';
 import { Stats } from './pages/Stats';
+import { OpenShared } from './pages/OpenShared';
 import { loadTheme, saveTheme, type Theme } from './lib/storage';
 
 export function App() {
@@ -20,6 +21,7 @@ export function App() {
       <Routes>
         <Route path="/how" element={<Docs />} />
         <Route path="/stats" element={<Stats />} />
+        <Route path="/view/:slug" element={<OpenShared />} />
         <Route path="*" element={<Inspector theme={theme} onToggleTheme={toggleTheme} />} />
       </Routes>
     </BrowserRouter>

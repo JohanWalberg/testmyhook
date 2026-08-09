@@ -10,7 +10,7 @@ The UI is implemented from the design in [`design_prototype/TestMyHook.dc.html`]
 - Anything after the slug is captured as the request path: `POST /tiny-snow-k4d92h/orders/created` shows up as `/orders/created`
 - Requests stream into the sidebar in real time (SSE), grouped by day, with the sender detected from the user-agent (`shopify · 200 · 1.4 kB`)
 - Configure the response returned to the sender: status code, body, delay
-- Multiple URLs as tabs · regenerate · copy · export as JSON · dark mode
+- Multiple URLs as tabs · regenerate · copy · export as JSON · dark mode · shareable inbox links (`/view/<slug>` opens the same live inbox on any device)
 - No accounts. URLs are deleted after 7 days of inactivity. 500 webhooks kept per URL, 10 MB body max.
 
 ## Stack
