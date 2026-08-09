@@ -93,7 +93,7 @@ export function RequestDetail({ request, slug, endpoint, onDelete }: RequestDeta
       </div>
 
       <div style={{ flex: 1, padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 22, overflowY: 'auto', minHeight: 0 }}>
-        {tab === 'body' && <BodyTab request={request} endpoint={endpoint} />}
+        {tab === 'body' && <BodyTab request={request} endpoint={endpoint} slug={slug} />}
         {tab === 'headers' && <KvGrid label="Headers" rows={request.headers.map(h => [h.name, h.value])} />}
         {tab === 'query' && <KvGrid label="Query params" rows={request.query.map(q => [q.k, q.v])} />}
         {tab === 'raw' && (
@@ -109,12 +109,31 @@ export function RequestDetail({ request, slug, endpoint, onDelete }: RequestDeta
   );
 }
 
-function BodyTab({ request, endpoint }: { request: ApiRequest; endpoint: ApiEndpoint }) {
+function BodyTab({ request, endpoint, slug }: { request: ApiRequest; endpoint: ApiEndpoint; slug: string }) {
   const parsed = parsedJson(request);
   const lines: CodeLine[] | null = parsed !== undefined ? jsonToLines(parsed) : null;
   const rawText = request.bodyIsText ? request.body : `(binary body — base64)\n${request.body}`;
   const lineCount = lines ? lines.length : rawText === '' ? 0 : rawText.split('\n').length;
   const cardLabel = request.contentType ?? (request.body === '' ? 'no body' : 'unknown');
+
+  const downloadBody = async () => {
+    // The listed copy may be truncated — always download the full body.
+    const full = request.bodyTruncated ? await api.getRequest(slug, request.id).catch(() => request) : request;
+    const mime = full.contentType?.split(';')[0].trim() || (full.bodyIsText ? 'text/plain' : 'application/octet-stream');
+    const ext = mime.includes('json') ? 'json'
+      : mime.includes('xml') ? 'xml'
+        : mime.includes('html') ? 'html'
+          : full.bodyIsText ? 'txt'
+            : (mime.split('/')[1] ?? 'bin').slice(0, 8);
+    const blob = full.bodyIsText
+      ? new Blob([full.body], { type: mime })
+      : new Blob([Uint8Array.from(atob(full.body), c => c.charCodeAt(0))], { type: mime });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${slug}-${request.id}-body.${ext}`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
 
   return (
     <>
@@ -128,8 +147,15 @@ function BodyTab({ request, endpoint }: { request: ApiRequest; endpoint: ApiEndp
           }}
         >
           <span>{cardLabel}</span>
-          <span style={{ color: 'var(--faint)' }}>
-            {request.bodyTruncated ? `showing first 128 kB of ${formatSize(request.bodySize)} — export JSON for all` : `${lineCount} lines`}
+          <span style={{ display: 'flex', gap: 16, alignItems: 'baseline' }}>
+            <span style={{ color: 'var(--faint)' }}>
+              {request.bodyTruncated ? `showing first 128 kB of ${formatSize(request.bodySize)}` : `${lineCount} lines`}
+            </span>
+            {request.body !== '' && (
+              <span className="hoverAccent" onClick={downloadBody} style={{ color: 'var(--muted)', userSelect: 'none' }}>
+                DOWNLOAD
+              </span>
+            )}
           </span>
         </div>
         <div className="mono" style={{ padding: '16px 18px', fontSize: 13, lineHeight: 1.85, color: 'var(--ink-2)', overflowX: 'auto' }}>
