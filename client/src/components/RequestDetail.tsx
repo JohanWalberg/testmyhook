@@ -155,7 +155,7 @@ function BodyTab({ request, slug }: { request: ApiRequest; slug: string }) {
 
   return (
     <>
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 9, overflow: 'hidden' }}>
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 9, overflow: 'hidden', flex: 'none' }}>
         <div
           className="mono"
           style={{
@@ -284,7 +284,7 @@ function ResponseTab({ request }: { request: ApiRequest }) {
         ))}
       </div>
 
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 9, overflow: 'hidden' }}>
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 9, overflow: 'hidden', flex: 'none' }}>
         <div
           className="mono"
           style={{
