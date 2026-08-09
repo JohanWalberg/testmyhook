@@ -302,6 +302,14 @@ describe('operations', () => {
     expect(res.body.ok).toBe(true);
   });
 
+  it('sends security headers', async () => {
+    const res = await request(app).get('/healthz');
+    expect(res.headers['content-security-policy']).toContain("frame-ancestors 'none'");
+    expect(res.headers['x-frame-options']).toBe('DENY');
+    expect(res.headers['referrer-policy']).toBe('no-referrer');
+    expect(res.headers['x-robots-tag']).toContain('noindex');
+  });
+
   it('sends CORS headers on receiver responses so browser senders can read them', async () => {
     const { slug } = await createUrl();
     const res = await request(app)

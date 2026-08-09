@@ -14,6 +14,17 @@ export function createApp(db: Db) {
   app.use((_req, res, next) => {
     res.setHeader('X-Robots-Tag', 'noindex, nofollow');
     res.setHeader('X-Content-Type-Options', 'nosniff');
+    // The app displays attacker-controlled webhook payloads; lock down what a
+    // page may load or do. Inline styles are required (React style props),
+    // fonts come from Google Fonts, everything else is same-origin.
+    res.setHeader(
+      'Content-Security-Policy',
+      "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+        "font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; " +
+        "object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+    );
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'no-referrer');
     next();
   });
 
