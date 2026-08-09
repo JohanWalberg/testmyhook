@@ -95,7 +95,7 @@ export function RequestDetail({ request, slug, onDelete }: RequestDetailProps) {
         </div>
       </div>
 
-      <div style={{ flex: 1, padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 22, overflowY: 'auto', minHeight: 0 }}>
+      <div className="tabScroll" style={{ flex: 1, padding: '0 32px 24px', display: 'flex', flexDirection: 'column', gap: 22, overflowY: 'auto', minHeight: 0 }}>
         {tab === 'body' && <BodyTab request={request} slug={slug} />}
         {tab === 'headers' && <KvGrid label="Headers" rows={request.headers.map(h => [h.name, h.value])} />}
         {tab === 'query' && <KvGrid label="Query params" rows={request.query.map(q => [q.k, q.v])} />}
@@ -155,10 +155,12 @@ function BodyTab({ request, slug }: { request: ApiRequest; slug: string }) {
 
   return (
     <>
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 9, overflow: 'hidden', flex: 'none' }}>
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 9, flex: 'none' }}>
         <div
           className="mono"
           style={{
+            position: 'sticky', top: 0, zIndex: 5, background: 'var(--card)',
+            borderTopLeftRadius: 9, borderTopRightRadius: 9,
             padding: '9px 14px', borderBottom: '1px solid var(--border-soft)', display: 'flex',
             alignItems: 'center', justifyContent: 'space-between', fontSize: 11,
             letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)'
@@ -284,10 +286,12 @@ function ResponseTab({ request }: { request: ApiRequest }) {
         ))}
       </div>
 
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 9, overflow: 'hidden', flex: 'none' }}>
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 9, flex: 'none' }}>
         <div
           className="mono"
           style={{
+            position: 'sticky', top: 0, zIndex: 5, background: 'var(--card)',
+            borderTopLeftRadius: 9, borderTopRightRadius: 9,
             padding: '9px 14px', borderBottom: '1px solid var(--border-soft)',
             fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)'
           }}
