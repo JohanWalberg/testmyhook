@@ -71,7 +71,9 @@ interface NodeProps {
 function Node({ k, value, indent, last, fold }: NodeProps) {
   const [open, setOpen] = useState(true);
   useEffect(() => {
-    if (fold) setOpen(fold.open);
+    // Collapse-all folds nested sections but keeps the root open, so the
+    // top-level keys stay visible as an overview.
+    if (fold) setOpen(fold.open || indent === 0);
   }, [fold?.version]);
 
   const comma = last ? '' : ',';
