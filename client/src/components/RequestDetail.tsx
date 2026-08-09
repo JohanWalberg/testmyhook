@@ -35,7 +35,17 @@ export function RequestDetail({ request, slug, endpoint, onDelete }: RequestDeta
   const exportJson = async () => {
     // Fetch the full request — the listed copy may have a truncated body.
     const full = await api.getRequest(slug, request.id).catch(() => request);
-    const blob = new Blob([JSON.stringify(full, null, 2)], { type: 'application/json' });
+    // Embed a JSON body as a real object rather than an escaped string, so
+    // the exported file reads naturally.
+    let body: unknown = full.body;
+    if (full.bodyIsText) {
+      try {
+        body = JSON.parse(full.body);
+      } catch {
+        body = full.body;
+      }
+    }
+    const blob = new Blob([JSON.stringify({ ...full, body }, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `${slug}-request-${request.id}.json`;
@@ -119,14 +129,25 @@ function BodyTab({ request, endpoint, slug }: { request: ApiRequest; endpoint: A
   const downloadBody = async () => {
     // The listed copy may be truncated — always download the full body.
     const full = request.bodyTruncated ? await api.getRequest(slug, request.id).catch(() => request) : request;
-    const mime = full.contentType?.split(';')[0].trim() || (full.bodyIsText ? 'text/plain' : 'application/octet-stream');
-    const ext = mime.includes('json') ? 'json'
+    // JSON payloads usually arrive minified; save them pretty-printed so the
+    // file is readable the moment it is opened. Detected by parsing, not by
+    // content-type — senders often ship JSON as text/plain.
+    let pretty: string | null = null;
+    if (full.bodyIsText) {
+      try {
+        pretty = JSON.stringify(JSON.parse(full.body), null, 2);
+      } catch {
+        pretty = null;
+      }
+    }
+    const mime = pretty ? 'application/json' : full.contentType?.split(';')[0].trim() || (full.bodyIsText ? 'text/plain' : 'application/octet-stream');
+    const ext = pretty || mime.includes('json') ? 'json'
       : mime.includes('xml') ? 'xml'
         : mime.includes('html') ? 'html'
           : full.bodyIsText ? 'txt'
             : (mime.split('/')[1] ?? 'bin').slice(0, 8);
     const blob = full.bodyIsText
-      ? new Blob([full.body], { type: mime })
+      ? new Blob([pretty ?? full.body], { type: mime })
       : new Blob([Uint8Array.from(atob(full.body), c => c.charCodeAt(0))], { type: mime });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
