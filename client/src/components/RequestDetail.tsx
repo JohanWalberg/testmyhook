@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import type { ApiRequest } from '../types';
 import { api } from '../api';
-import { detailTime, formatSize, parsedJson, rawRequestText, statusFull, toCurl } from '../lib/format';
+import { detailTime, formatSize, methodColor, parsedJson, rawRequestText, statusFull, toCurl, toFetch } from '../lib/format';
 import { JsonTree, type FoldSignal } from './JsonTree';
 
 type Tab = 'body' | 'headers' | 'query' | 'raw' | 'response';
@@ -15,14 +15,15 @@ interface RequestDetailProps {
 
 export function RequestDetail({ request, slug, onDelete, onBack }: RequestDetailProps) {
   const [tab, setTab] = useState<Tab>('body');
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<'curl' | 'fetch' | null>(null);
   const copyTimer = useRef<ReturnType<typeof setTimeout>>();
 
-  const copyCurl = () => {
-    navigator.clipboard?.writeText(toCurl(request, window.location.origin, slug)).catch(() => {});
+  const copySnippet = (kind: 'curl' | 'fetch') => {
+    const text = kind === 'curl' ? toCurl(request, window.location.origin, slug) : toFetch(request, window.location.origin, slug);
+    navigator.clipboard?.writeText(text).catch(() => {});
     clearTimeout(copyTimer.current);
-    setCopied(true);
-    copyTimer.current = setTimeout(() => setCopied(false), 1200);
+    setCopied(kind);
+    copyTimer.current = setTimeout(() => setCopied(null), 1200);
   };
 
   const exportJson = async () => {
@@ -69,7 +70,7 @@ export function RequestDetail({ request, slug, onDelete, onBack }: RequestDetail
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <span
             className="mono"
-            style={{ fontSize: 11, fontWeight: 700, color: 'var(--badge-ink)', background: 'var(--green)', padding: '4px 8px', borderRadius: 4 }}
+            style={{ fontSize: 11, fontWeight: 700, color: 'var(--badge-ink)', background: methodColor(request.method), padding: '4px 8px', borderRadius: 4 }}
           >
             {request.method}
           </span>
@@ -80,7 +81,8 @@ export function RequestDetail({ request, slug, onDelete, onBack }: RequestDetail
             · {detailTime(request.receivedAt)} · {formatSize(request.bodySize)} · replied in {Math.max(request.durationMs, 1)} ms
           </span>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-            <button className="ghostBtn" onClick={copyCurl}>{copied ? 'copied!' : 'copy cURL'}</button>
+            <button className="ghostBtn" onClick={() => copySnippet('curl')}>{copied === 'curl' ? 'copied!' : 'copy cURL'}</button>
+            <button className="ghostBtn" onClick={() => copySnippet('fetch')}>{copied === 'fetch' ? 'copied!' : 'copy fetch'}</button>
             <button className="ghostBtn" onClick={exportJson}>export JSON</button>
             <button className="ghostBtn" onClick={onDelete} style={{ color: 'var(--accent)' }}>delete</button>
           </div>

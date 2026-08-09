@@ -21,6 +21,8 @@ export function Inspector({ theme, onToggleTheme }: InspectorProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const [live, setLive] = useState(false);
+  const [freshId, setFreshId] = useState<number | null>(null);
+  const freshTimer = useRef<ReturnType<typeof setTimeout>>();
   const [width, setWidth] = useState(window.innerWidth);
   const [mobileDetail, setMobileDetail] = useState(false);
   const booted = useRef(false);
@@ -102,6 +104,9 @@ export function Inspector({ theme, onToggleTheme }: InspectorProps) {
           const incoming = data.request as ApiRequest;
           setRequests(prev => (prev.some(r => r.id === incoming.id) ? prev : [incoming, ...prev].slice(0, 500)));
           setSelectedId(prev => prev ?? incoming.id);
+          setFreshId(incoming.id);
+          clearTimeout(freshTimer.current);
+          freshTimer.current = setTimeout(() => setFreshId(null), 1600);
         } else if (data.type === 'endpoint') {
           setEndpoint(data.endpoint as ApiEndpoint);
         } else if (data.type === 'request_deleted') {
@@ -110,6 +115,9 @@ export function Inspector({ theme, onToggleTheme }: InspectorProps) {
         } else if (data.type === 'requests_cleared') {
           setRequests([]);
           setSelectedId(null);
+        } else if (data.type === 'url_deleted') {
+          // Someone (possibly on another device) deleted this URL.
+          void closeUrl(active);
         }
       } catch {
         // ignore malformed events
@@ -217,6 +225,7 @@ export function Inspector({ theme, onToggleTheme }: InspectorProps) {
         endpoint={endpoint}
         requests={requests}
         selectedId={selectedId}
+        freshId={freshId}
         search={search}
         live={live}
         onSearch={setSearch}

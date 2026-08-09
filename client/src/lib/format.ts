@@ -170,6 +170,11 @@ export function parsedJson(req: ApiRequest): unknown | undefined {
   }
 }
 
+export function methodColor(method: string): string {
+  const key = method.toLowerCase();
+  return ['get', 'post', 'put', 'patch', 'delete'].includes(key) ? `var(--m-${key})` : 'var(--m-other)';
+}
+
 const CURL_SKIP = new Set(['host', 'content-length', 'connection', 'accept-encoding']);
 
 function shellQuote(value: string): string {
@@ -190,6 +195,25 @@ export function toCurl(req: ApiRequest, origin: string, slug: string): string {
     lines.push(`  -d ${shellQuote(req.body)}`);
   }
   return lines.join(' \\\n');
+}
+
+/** JavaScript fetch() snippet reproducing a captured request. */
+export function toFetch(req: ApiRequest, origin: string, slug: string): string {
+  const qs = req.query.length
+    ? '?' + req.query.map(({ k, v }) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&')
+    : '';
+  const target = `${origin}/${slug}${req.path === '/' ? '' : req.path}${qs}`;
+  const headers = req.headers.filter(h => !CURL_SKIP.has(h.name.toLowerCase()));
+  const lines = [`await fetch(${JSON.stringify(target)}, {`, `  method: ${JSON.stringify(req.method)},`];
+  if (headers.length) {
+    lines.push('  headers: {');
+    headers.forEach((h, i) => lines.push(`    ${JSON.stringify(h.name)}: ${JSON.stringify(h.value)}${i < headers.length - 1 ? ',' : ''}`));
+    lines.push('  },');
+  }
+  if (req.bodyIsText && req.body.length > 0) lines.push(`  body: ${JSON.stringify(req.body)},`);
+  lines[lines.length - 1] = lines[lines.length - 1].replace(/,$/, '');
+  lines.push('})');
+  return lines.join('\n');
 }
 
 export function rawRequestText(req: ApiRequest, host: string, slug: string): string {

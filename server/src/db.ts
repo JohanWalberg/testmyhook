@@ -92,6 +92,10 @@ export function createDb(path: string) {
   if (!requestColumns.includes('response_delay_ms')) {
     db.exec('ALTER TABLE requests ADD COLUMN response_delay_ms INTEGER NOT NULL DEFAULT 0');
   }
+  const geoColumns = (db.prepare('PRAGMA table_info(geo)').all() as { name: string }[]).map(c => c.name);
+  if (!geoColumns.includes('country')) {
+    db.exec('ALTER TABLE geo ADD COLUMN country TEXT');
+  }
 
   return {
     createEndpoint(slug: string, now: number): EndpointRow {
@@ -171,11 +175,11 @@ export function createDb(path: string) {
       db.prepare('DELETE FROM endpoints WHERE last_activity_at + ? < ?').run(maxIdleMs, now);
     },
 
-    bumpGeo(lat: number, lon: number): void {
+    bumpGeo(lat: number, lon: number, country: string | null = null): void {
       db.prepare(`
-        INSERT INTO geo (lat, lon, count) VALUES (?, ?, 1)
-        ON CONFLICT(lat, lon) DO UPDATE SET count = count + 1
-      `).run(lat, lon);
+        INSERT INTO geo (lat, lon, count, country) VALUES (?, ?, 1, ?)
+        ON CONFLICT(lat, lon) DO UPDATE SET count = count + 1, country = COALESCE(geo.country, excluded.country)
+      `).run(lat, lon, country);
     },
 
     bumpCounter(key: string, delta = 1): void {
@@ -199,8 +203,8 @@ export function createDb(path: string) {
         urlsActive: one('SELECT COUNT(*) AS n FROM endpoints'),
         webhooksStored: one('SELECT COUNT(*) AS n FROM requests'),
         bytesStored: one('SELECT COALESCE(SUM(body_size), 0) AS n FROM requests'),
-        points: db.prepare('SELECT lat, lon, count AS n FROM geo ORDER BY count DESC LIMIT 800')
-          .all() as unknown as { lat: number; lon: number; n: number }[]
+        points: db.prepare('SELECT lat, lon, country, count AS n FROM geo ORDER BY count DESC LIMIT 800')
+          .all() as unknown as { lat: number; lon: number; country: string | null; n: number }[]
       };
     },
 

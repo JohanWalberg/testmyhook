@@ -22,9 +22,12 @@ function endpointOr404(db: Db, req: Request, res: Response): EndpointRow | undef
   return endpoint;
 }
 
+const MAX_STREAMS_PER_IP = 20;
+
 export function createApi(db: Db, hub: EventHub): Router {
   const router = express.Router();
   const createLimiter = new RateLimiter(30, 60_000);
+  const streamsPerIp = new Map<string, number>();
   router.use((_req, res, next) => {
     res.setHeader('X-Robots-Tag', 'noindex, nofollow');
     next();
@@ -131,6 +134,7 @@ export function createApi(db: Db, hub: EventHub): Router {
   router.delete('/urls/:slug', (req, res) => {
     const endpoint = endpointOr404(db, req, res);
     if (!endpoint) return;
+    hub.publish(endpoint.slug, { type: 'url_deleted' });
     db.deleteEndpoint(endpoint.id);
     res.status(204).end();
   });
@@ -151,6 +155,13 @@ export function createApi(db: Db, hub: EventHub): Router {
   router.get('/urls/:slug/stream', (req, res) => {
     const endpoint = endpointOr404(db, req, res);
     if (!endpoint) return;
+    const ip = req.ip ?? 'unknown';
+    const open = streamsPerIp.get(ip) ?? 0;
+    if (open >= MAX_STREAMS_PER_IP) {
+      res.status(429).json({ error: 'too_many_streams' });
+      return;
+    }
+    streamsPerIp.set(ip, open + 1);
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-store',
@@ -163,6 +174,9 @@ export function createApi(db: Db, hub: EventHub): Router {
     req.on('close', () => {
       clearInterval(ping);
       unsubscribe();
+      const left = (streamsPerIp.get(ip) ?? 1) - 1;
+      if (left <= 0) streamsPerIp.delete(ip);
+      else streamsPerIp.set(ip, left);
     });
   });
 

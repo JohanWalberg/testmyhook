@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
 import type { ApiRequest } from '../types';
-import { dayLabel, formatSize, listTime, requestTitle } from '../lib/format';
+import { dayLabel, detailTime, formatSize, listTime, methodColor, requestTitle } from '../lib/format';
 
 interface RequestListProps {
   requests: ApiRequest[];
   total: number;
   selectedId: number | null;
+  freshId: number | null;
   onSelect: (id: number) => void;
 }
 
-export function RequestList({ requests, total, selectedId, onSelect }: RequestListProps) {
+export function RequestList({ requests, total, selectedId, freshId, onSelect }: RequestListProps) {
   // Re-render every 30 s so relative times ("12s ago") stay fresh.
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -65,7 +66,7 @@ export function RequestList({ requests, total, selectedId, onSelect }: RequestLi
             return (
               <div
                 key={r.id}
-                className={isSelected ? undefined : 'listRow'}
+                className={`${isSelected ? '' : 'listRow'} ${r.id === freshId ? 'flashNew' : ''}`.trim() || undefined}
                 onClick={() => onSelect(r.id)}
                 style={{
                   padding: '12px 22px',
@@ -78,7 +79,7 @@ export function RequestList({ requests, total, selectedId, onSelect }: RequestLi
                 <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                   <span
                     className="mono"
-                    style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--badge-ink)', background: 'var(--green)', padding: '3px 6px', borderRadius: 4 }}
+                    style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--badge-ink)', background: methodColor(r.method), padding: '3px 6px', borderRadius: 4 }}
                   >
                     {r.method}
                   </span>
@@ -92,7 +93,11 @@ export function RequestList({ requests, total, selectedId, onSelect }: RequestLi
                   >
                     {requestTitle(r)}
                   </span>
-                  <span className="mono" style={{ fontSize: 11, color: 'var(--muted-2)', marginLeft: 'auto', flex: 'none' }}>
+                  <span
+                    className="mono"
+                    title={detailTime(r.receivedAt)}
+                    style={{ fontSize: 11, color: 'var(--muted-2)', marginLeft: 'auto', flex: 'none' }}
+                  >
                     {listTime(r.receivedAt)}
                   </span>
                 </div>

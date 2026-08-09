@@ -16,6 +16,7 @@ interface SidebarProps {
   endpoint: ApiEndpoint | null;
   requests: ApiRequest[];
   selectedId: number | null;
+  freshId: number | null;
   search: string;
   live: boolean;
   onSearch: (value: string) => void;
@@ -79,6 +80,24 @@ export function Sidebar(props: SidebarProps) {
         `${r.path} ${r.method} ${r.source} ${r.sourceIp ?? ''} ${r.bodyIsText ? r.body : ''}`.toLowerCase().includes(search.trim().toLowerCase())
       )
     : requests;
+
+  // j/k or arrow keys walk the request list, editor style.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      const down = e.key === 'j' || e.key === 'ArrowDown';
+      const up = e.key === 'k' || e.key === 'ArrowUp';
+      if (!down && !up) return;
+      if (filtered.length === 0) return;
+      e.preventDefault();
+      const index = filtered.findIndex(r => r.id === selectedId);
+      const next = index === -1 ? 0 : Math.min(Math.max(index + (down ? 1 : -1), 0), filtered.length - 1);
+      props.onSelect(filtered[next].id);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [filtered, selectedId, props.onSelect]);
 
   return (
     <div
@@ -238,7 +257,7 @@ export function Sidebar(props: SidebarProps) {
         </div>
       </div>
 
-      <RequestList requests={filtered} total={requests.length} selectedId={selectedId} onSelect={props.onSelect} />
+      <RequestList requests={filtered} total={requests.length} selectedId={selectedId} freshId={props.freshId} onSelect={props.onSelect} />
 
       <div style={{ padding: '14px 22px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div

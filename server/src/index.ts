@@ -30,7 +30,7 @@ if (existsSync(clientDist)) {
     if (req.path === '/') {
       db.bumpCounter('page_visits');
       const location = coarseLocation(req.ip ?? null);
-      if (location) db.bumpGeo(location.lat, location.lon);
+      if (location) db.bumpGeo(location.lat, location.lon, location.country);
     }
     res.setHeader('Cache-Control', 'no-cache');
     res.sendFile(join(clientDist, 'index.html'));

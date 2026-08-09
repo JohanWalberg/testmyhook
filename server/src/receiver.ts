@@ -114,7 +114,7 @@ export function createReceiver(db: Db, hub: EventHub): Router {
     db.updateEndpoint(endpoint.id, { last_activity_at: started });
     db.bumpCounter('webhooks_received');
     const location = coarseLocation(sourceIp);
-    if (location) db.bumpGeo(location.lat, location.lon);
+    if (location) db.bumpGeo(location.lat, location.lon, location.country);
     hub.publish(slug, { type: 'request', request: serializeRequest(stored) });
 
     const send = () => {

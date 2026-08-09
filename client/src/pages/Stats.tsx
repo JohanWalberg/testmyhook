@@ -26,10 +26,14 @@ export function Stats() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('/api/stats')
-      .then(r => r.json())
-      .then(setStats)
-      .catch(() => {});
+    const load = () =>
+      fetch('/api/stats')
+        .then(r => r.json())
+        .then(setStats)
+        .catch(() => {});
+    load();
+    const timer = setInterval(load, 30_000);
+    return () => clearInterval(timer);
   }, []);
 
   const sinceLabel = stats

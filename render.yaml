@@ -7,6 +7,8 @@ services:
     envVars:
       - key: DB_PATH
         value: /data/testmyhook.db
+      - key: PUBLIC_ORIGIN
+        value: https://testmyhook.dev
     disk:
       name: testmyhook-data
       mountPath: /data

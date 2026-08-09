@@ -380,6 +380,7 @@ describe('geo aggregation', () => {
     const stats = await request(app).get('/api/stats');
     expect(stats.body.points).toHaveLength(1);
     expect(stats.body.points[0].n).toBe(2);
+    expect(stats.body.points[0].country).toBe('US');
     expect(Math.abs(stats.body.points[0].lat % 2)).toBe(0); // snapped to the 2° grid
     expect(Math.abs(stats.body.points[0].lon % 2)).toBe(0);
   });

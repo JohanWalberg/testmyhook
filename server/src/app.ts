@@ -34,13 +34,16 @@ export function createApp(db: Db) {
 
   // Public pages (/, /how, /stats) are indexable; robots.txt keeps crawlers
   // out of shared-inbox links. Webhook slugs are unguessable and noindexed.
+  const publicOrigin = (req: express.Request) =>
+    process.env.PUBLIC_ORIGIN || `${req.protocol}://${req.get('host')}`;
+
   app.get('/robots.txt', (req, res) => {
-    const origin = `${req.protocol}://${req.get('host')}`;
+    const origin = publicOrigin(req);
     res.type('text/plain').send(`User-agent: *\nDisallow: /view/\n\nSitemap: ${origin}/sitemap.xml\n`);
   });
 
   app.get('/sitemap.xml', (req, res) => {
-    const origin = `${req.protocol}://${req.get('host')}`;
+    const origin = publicOrigin(req);
     const urls = ['/', '/how', '/stats']
       .map(path => `  <url><loc>${origin}${path}</loc></url>`)
       .join('\n');
