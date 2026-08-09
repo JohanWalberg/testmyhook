@@ -5,6 +5,7 @@ import express from 'express';
 import { createDb } from './db.js';
 import { createApp } from './app.js';
 import { coarseLocation } from './geo.js';
+import { countryAt } from './countries.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT ?? 8787);
@@ -13,6 +14,12 @@ const MAX_IDLE_MS = 7 * 24 * 60 * 60 * 1000; // URLs are deleted after 7 days of
 
 const db = createDb(DB_PATH);
 const { app } = createApp(db);
+
+// Backfill country labels for geo cells recorded before countries were stored.
+for (const cell of db.listGeoMissingCountry()) {
+  const name = countryAt(cell.lat, cell.lon);
+  if (name) db.setGeoCountry(cell.lat, cell.lon, name);
+}
 
 const purge = setInterval(() => db.purgeInactive(MAX_IDLE_MS, Date.now()), 10 * 60 * 1000);
 purge.unref();

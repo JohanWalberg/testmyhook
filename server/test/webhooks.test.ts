@@ -420,6 +420,28 @@ describe('stats', () => {
   });
 });
 
+describe('coordinate country lookup', () => {
+  it('resolves coordinates to country names offline', async () => {
+    const { countryAt } = await import('../src/countries.js');
+    expect(countryAt(60, 18)).toBe('Sweden');
+    expect(countryAt(38, -98)).toBe('United States of America');
+    expect(countryAt(56, 12)).toBeTruthy(); // Denmark/Sweden strait — nudge finds land
+    expect(countryAt(0, -140)).toBeNull(); // open Pacific
+  });
+
+  it('backfills country for geo cells recorded without one', async () => {
+    db.bumpGeo(60, 18, null);
+    const { countryAt } = await import('../src/countries.js');
+    for (const cell of db.listGeoMissingCountry()) {
+      const name = countryAt(cell.lat, cell.lon);
+      if (name) db.setGeoCountry(cell.lat, cell.lon, name);
+    }
+    const stats = await request(app).get('/api/stats');
+    const cell = stats.body.points.find((p: { lat: number }) => p.lat === 60);
+    expect(cell.country).toBe('Sweden');
+  });
+});
+
 describe('geo aggregation', () => {
   it('records coarse locations for public IPs and skips private ones', async () => {
     const { slug } = await createUrl();

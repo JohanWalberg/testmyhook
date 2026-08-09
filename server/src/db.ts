@@ -227,6 +227,14 @@ export function createDb(path: string) {
       db.prepare('DELETE FROM endpoints WHERE last_activity_at + ? < ?').run(maxIdleMs, now);
     },
 
+    listGeoMissingCountry(): { lat: number; lon: number }[] {
+      return db.prepare('SELECT lat, lon FROM geo WHERE country IS NULL').all() as unknown as { lat: number; lon: number }[];
+    },
+
+    setGeoCountry(lat: number, lon: number, country: string): void {
+      db.prepare('UPDATE geo SET country = ? WHERE lat = ? AND lon = ?').run(country, lat, lon);
+    },
+
     bumpGeo(lat: number, lon: number, country: string | null = null): void {
       db.prepare(`
         INSERT INTO geo (lat, lon, count, country) VALUES (?, ?, 1, ?)

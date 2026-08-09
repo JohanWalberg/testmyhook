@@ -1,4 +1,5 @@
 import geoip from 'geoip-lite';
+import { countryAt } from './countries.js';
 
 /**
  * Resolves an IP to an approximate location, snapped to a 2° grid so only
@@ -14,6 +15,6 @@ export function coarseLocation(ip: string | null): { lat: number; lon: number; c
   return {
     lat: Math.round(lat / 2) * 2,
     lon: Math.round(lon / 2) * 2,
-    country: hit.country || null
+    country: hit.country || countryAt(lat, lon)
   };
 }
