@@ -105,7 +105,10 @@ export function UrlMenu({ slug, endpoint, theme, onToggleTheme, onCopy, onRegene
     <div
       ref={ref}
       style={{
-        position: 'absolute', left: 414, top: 118, width: 412, zIndex: 40,
+        position: 'absolute',
+        left: window.innerWidth < 700 ? 12 : 414,
+        top: window.innerWidth < 700 ? 150 : 118,
+        width: 412, maxWidth: 'calc(100vw - 24px)', zIndex: 40,
         background: 'var(--card)', border: '1px solid var(--frame-border)', borderRadius: 11,
         boxShadow: 'var(--pop-shadow)', overflow: 'hidden'
       }}

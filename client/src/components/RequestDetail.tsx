@@ -10,9 +10,10 @@ interface RequestDetailProps {
   request: ApiRequest;
   slug: string;
   onDelete: () => void;
+  onBack?: () => void;
 }
 
-export function RequestDetail({ request, slug, onDelete }: RequestDetailProps) {
+export function RequestDetail({ request, slug, onDelete, onBack }: RequestDetailProps) {
   const [tab, setTab] = useState<Tab>('body');
   const [copied, setCopied] = useState(false);
   const copyTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -55,7 +56,16 @@ export function RequestDetail({ request, slug, onDelete }: RequestDetailProps) {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-      <div style={{ padding: '22px 32px 0', display: 'flex', flexDirection: 'column', gap: 16, borderBottom: '1px solid var(--border)' }}>
+      <div style={{ padding: '22px clamp(16px, 4vw, 32px) 0', display: 'flex', flexDirection: 'column', gap: 16, borderBottom: '1px solid var(--border)' }}>
+        {onBack && (
+          <span
+            className="mono hoverAccent clickable"
+            onClick={onBack}
+            style={{ fontSize: 13, color: 'var(--accent)', alignSelf: 'flex-start' }}
+          >
+            ← requests
+          </span>
+        )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <span
             className="mono"
@@ -95,7 +105,7 @@ export function RequestDetail({ request, slug, onDelete }: RequestDetailProps) {
         </div>
       </div>
 
-      <div className="tabScroll" style={{ flex: 1, padding: '0 32px 24px', display: 'flex', flexDirection: 'column', gap: 22, overflowY: 'auto', minHeight: 0 }}>
+      <div className="tabScroll" style={{ flex: 1, padding: '0 clamp(16px, 4vw, 32px) 24px', display: 'flex', flexDirection: 'column', gap: 22, overflowY: 'auto', minHeight: 0 }}>
         {tab === 'body' && <BodyTab request={request} slug={slug} />}
         {tab === 'headers' && <KvGrid label="Headers" rows={request.headers.map(h => [h.name, h.value])} />}
         {tab === 'query' && <KvGrid label="Query params" rows={request.query.map(q => [q.k, q.v])} />}

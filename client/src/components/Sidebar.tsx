@@ -8,6 +8,7 @@ import { RequestList } from './RequestList';
 import { UrlMenu } from './UrlMenu';
 
 interface SidebarProps {
+  isMobile?: boolean;
   theme: Theme;
   onToggleTheme: () => void;
   slugs: string[];
@@ -82,7 +83,8 @@ export function Sidebar(props: SidebarProps) {
   return (
     <div
       style={{
-        width: 392, flex: 'none', borderRight: '1px solid var(--border)',
+        width: props.isMobile ? '100%' : 392, flex: props.isMobile ? '1 1 auto' : 'none',
+        borderRight: props.isMobile ? 'none' : '1px solid var(--border)', minWidth: 0,
         display: 'flex', flexDirection: 'column', background: 'var(--sidebar)', position: 'relative'
       }}
     >
@@ -104,7 +106,7 @@ export function Sidebar(props: SidebarProps) {
           <div
             ref={pageMenuRef}
             style={{
-              position: 'absolute', right: 22, top: 56, width: 180, zIndex: 40,
+              position: 'absolute', right: 22, top: 56, width: 180, maxWidth: 'calc(100vw - 44px)', zIndex: 40,
               background: 'var(--card)', border: '1px solid var(--frame-border)', borderRadius: 11,
               boxShadow: 'var(--pop-shadow)', overflow: 'hidden'
             }}

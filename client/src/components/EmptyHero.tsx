@@ -4,7 +4,7 @@ export function EmptyHero({ slug }: { slug: string | null }) {
   const target = `${window.location.origin}/${slug ?? '…'}`;
   const copyCommand = `curl -X POST ${target} -H "Content-Type: application/json" -d '{"hello":"world"}'`;
   return (
-    <div style={{ flex: 1, padding: '96px 88px', display: 'flex', flexDirection: 'column', justifyContent: 'center', overflowY: 'auto' }}>
+    <div style={{ flex: 1, padding: 'clamp(32px, 8vw, 96px) clamp(20px, 6vw, 88px)', display: 'flex', flexDirection: 'column', justifyContent: 'center', overflowY: 'auto' }}>
       <div style={{ maxWidth: 660, display: 'flex', flexDirection: 'column', gap: 28 }}>
         <div className="mono" style={{ fontSize: 11.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--accent)' }}>
           Receiving

@@ -19,7 +19,16 @@ export function Inspector({ theme, onToggleTheme }: InspectorProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const [live, setLive] = useState(false);
+  const [width, setWidth] = useState(window.innerWidth);
+  const [mobileDetail, setMobileDetail] = useState(false);
   const booted = useRef(false);
+  const isMobile = width < 700;
+
+  useEffect(() => {
+    const onResize = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const persist = useCallback((nextSlugs: string[], nextActive: string | null) => {
     setSlugs(nextSlugs);
@@ -191,9 +200,14 @@ export function Inspector({ theme, onToggleTheme }: InspectorProps) {
 
   const selected = useMemo(() => requests.find(r => r.id === selectedId) ?? null, [requests, selectedId]);
 
+  const showSidebar = !isMobile || !mobileDetail || !selected;
+  const showMain = !isMobile || (mobileDetail && !!selected);
+
   return (
     <div style={{ height: '100%', display: 'flex', background: 'var(--canvas)', overflow: 'hidden' }}>
+      {showSidebar && (
       <Sidebar
+        isMobile={isMobile}
         theme={theme}
         onToggleTheme={onToggleTheme}
         slugs={slugs}
@@ -204,7 +218,10 @@ export function Inspector({ theme, onToggleTheme }: InspectorProps) {
         search={search}
         live={live}
         onSearch={setSearch}
-        onSelect={setSelectedId}
+        onSelect={id => {
+          setSelectedId(id);
+          setMobileDetail(true);
+        }}
         onActivate={slug => persist(slugs, slug)}
         onAdd={addUrl}
         onClose={closeUrl}
@@ -213,6 +230,8 @@ export function Inspector({ theme, onToggleTheme }: InspectorProps) {
         onClearRequests={clearRequests}
         onDeleteUrl={deleteUrl}
       />
+      )}
+      {showMain && (
       <main
         style={{
           flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden',
@@ -222,11 +241,17 @@ export function Inspector({ theme, onToggleTheme }: InspectorProps) {
         }}
       >
         {selected && active && endpoint ? (
-          <RequestDetail request={selected} slug={active} onDelete={() => deleteRequest(selected.id)} />
+          <RequestDetail
+            request={selected}
+            slug={active}
+            onDelete={() => deleteRequest(selected.id)}
+            onBack={isMobile ? () => setMobileDetail(false) : undefined}
+          />
         ) : (
           <EmptyHero slug={active} />
         )}
       </main>
+      )}
     </div>
   );
 }

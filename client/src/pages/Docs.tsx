@@ -35,7 +35,7 @@ export function Docs() {
   const target = `${window.location.origin}/${slug}/orders`;
   return (
     <div style={{ minHeight: '100%', background: 'var(--main-bg)', overflowY: 'auto' }}>
-      <div style={{ maxWidth: 1264, margin: '0 auto', padding: '64px 88px 72px', display: 'flex', flexDirection: 'column', gap: 48 }}>
+      <div style={{ maxWidth: 1264, margin: '0 auto', padding: '64px clamp(20px, 6vw, 88px) 72px', display: 'flex', flexDirection: 'column', gap: 48 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 720 }}>
           <Logo onClick={() => navigate('/')} />
           <h2 className="mono" style={{ margin: 0, fontSize: 32, lineHeight: 1.3, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--ink)' }}>
