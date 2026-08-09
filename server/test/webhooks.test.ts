@@ -458,6 +458,33 @@ describe('geo aggregation', () => {
   });
 });
 
+describe('feedback', () => {
+  it('stores feedback and succeeds without SMTP configured', async () => {
+    const res = await request(app).post('/api/feedback').send({ mood: 5, text: 'love it', email: 'nina@example.com' });
+    expect(res.status).toBe(201);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.mailed).toBe(false); // no SMTP in tests — stored only
+    expect(db.countFeedback()).toBe(1);
+  });
+
+  it('requires a valid mood and sane input sizes', async () => {
+    expect((await request(app).post('/api/feedback').send({ text: 'no mood' })).status).toBe(400);
+    expect((await request(app).post('/api/feedback').send({ mood: 6 })).status).toBe(400);
+    expect((await request(app).post('/api/feedback').send({ mood: 3, text: 'x'.repeat(2001) })).status).toBe(400);
+    expect((await request(app).post('/api/feedback').send({ mood: 3, email: 'not-an-email' })).status).toBe(400);
+    expect(db.countFeedback()).toBe(0);
+  });
+
+  it('rate limits submissions', async () => {
+    let last = 201;
+    for (let i = 0; i < 7; i++) {
+      last = (await request(app).post('/api/feedback').send({ mood: 4 })).status;
+      if (last === 429) break;
+    }
+    expect(last).toBe(429);
+  });
+});
+
 describe('source detection', () => {
   it.each([
     ['Shopify-Captain-Hook', 'shopify'],

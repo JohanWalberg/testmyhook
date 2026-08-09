@@ -5,6 +5,7 @@ import type { EventHub } from './events.js';
 import { newSlug, SLUG_PATTERN } from './slugs.js';
 import { serializeEndpoint, serializeRequest } from './serialize.js';
 import { RateLimiter } from './ratelimit.js';
+import { sendFeedbackMail } from './mailer.js';
 
 const MAX_RESPONSE_BODY = 16_384;
 const MAX_DELAY_MS = 5_000;
@@ -27,6 +28,7 @@ const MAX_STREAMS_PER_IP = 20;
 export function createApi(db: Db, hub: EventHub): Router {
   const router = express.Router();
   const createLimiter = new RateLimiter(30, 60_000);
+  const feedbackLimiter = new RateLimiter(5, 3_600_000);
   const streamsPerIp = new Map<string, number>();
   router.use((_req, res, next) => {
     res.setHeader('X-Robots-Tag', 'noindex, nofollow');
@@ -51,6 +53,29 @@ export function createApi(db: Db, hub: EventHub): Router {
     const endpoint = db.createEndpoint(freshSlug(), Date.now());
     db.bumpCounter('urls_created');
     res.status(201).json(serializeEndpoint(endpoint, 0));
+  });
+
+  // Feedback: stored always, emailed when SMTP is configured
+  router.post('/feedback', async (req, res) => {
+    if (!feedbackLimiter.hit(req.ip ?? 'unknown')) {
+      res.status(429).json({ error: 'rate_limit_exceeded' });
+      return;
+    }
+    const body = (req.body ?? {}) as Record<string, unknown>;
+    const mood = typeof body.mood === 'number' ? Math.floor(body.mood) : NaN;
+    const text = typeof body.text === 'string' ? body.text.trim() : '';
+    const email = typeof body.email === 'string' ? body.email.trim() : '';
+    if (!Number.isInteger(mood) || mood < 1 || mood > 5) {
+      res.status(400).json({ error: 'mood_required' });
+      return;
+    }
+    if (text.length > 2000 || email.length > 200 || (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
+      res.status(400).json({ error: 'invalid_input' });
+      return;
+    }
+    db.insertFeedback(mood, text, email, Date.now());
+    const mailed = await sendFeedbackMail({ mood, text, email });
+    res.status(201).json({ ok: true, mailed });
   });
 
   // Public usage stats for the /stats page

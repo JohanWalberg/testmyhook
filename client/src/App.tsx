@@ -4,6 +4,7 @@ import { Inspector } from './pages/Inspector';
 import { Docs } from './pages/Docs';
 import { Stats } from './pages/Stats';
 import { OpenShared } from './pages/OpenShared';
+import { FeedbackWidget } from './components/FeedbackWidget';
 import { loadTheme, saveTheme, type Theme } from './lib/storage';
 
 export function App() {
@@ -24,6 +25,7 @@ export function App() {
         <Route path="/view/:slug" element={<OpenShared />} />
         <Route path="*" element={<Inspector theme={theme} onToggleTheme={toggleTheme} />} />
       </Routes>
+      <FeedbackWidget />
     </BrowserRouter>
   );
 }

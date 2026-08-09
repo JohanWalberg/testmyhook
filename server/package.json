@@ -10,12 +10,14 @@
   },
   "dependencies": {
     "express": "^5.1.0",
-    "geoip-lite": "^2.0.3"
+    "geoip-lite": "^2.0.3",
+    "nodemailer": "^9.0.5"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/geoip-lite": "^1.4.4",
     "@types/node": "^24.0.0",
+    "@types/nodemailer": "^8.0.1",
     "@types/supertest": "^6.0.2",
     "supertest": "^7.1.0",
     "tsx": "^4.19.0",

@@ -77,6 +77,14 @@ export function createDb(path: string) {
       value INTEGER NOT NULL DEFAULT 0
     );
 
+    CREATE TABLE IF NOT EXISTS feedback (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      mood INTEGER NOT NULL,
+      text TEXT NOT NULL DEFAULT '',
+      email TEXT NOT NULL DEFAULT '',
+      created_at INTEGER NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS geo (
       lat INTEGER NOT NULL,
       lon INTEGER NOT NULL,
@@ -233,6 +241,15 @@ export function createDb(path: string) {
 
     setGeoCountry(lat: number, lon: number, country: string): void {
       db.prepare('UPDATE geo SET country = ? WHERE lat = ? AND lon = ?').run(country, lat, lon);
+    },
+
+    insertFeedback(mood: number, text: string, email: string, now: number): void {
+      db.prepare('INSERT INTO feedback (mood, text, email, created_at) VALUES (?, ?, ?, ?)').run(mood, text, email, now);
+    },
+
+    countFeedback(): number {
+      const row = db.prepare('SELECT COUNT(*) AS n FROM feedback').get() as { n: number };
+      return row.n;
     },
 
     bumpGeo(lat: number, lon: number, country: string | null = null): void {
