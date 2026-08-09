@@ -222,7 +222,7 @@ export function Inspector({ theme, onToggleTheme }: InspectorProps) {
         }}
       >
         {selected && active && endpoint ? (
-          <RequestDetail request={selected} slug={active} endpoint={endpoint} onDelete={() => deleteRequest(selected.id)} />
+          <RequestDetail request={selected} slug={active} onDelete={() => deleteRequest(selected.id)} />
         ) : (
           <EmptyHero slug={active} />
         )}

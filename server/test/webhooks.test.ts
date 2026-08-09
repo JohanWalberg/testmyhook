@@ -141,7 +141,7 @@ describe('receiving webhooks', () => {
         endpoint_id: endpoint.id, method: 'POST', path: `/n/${i}`,
         query_json: '[]', headers_json: '[]', raw_body: null, content_type: null,
         source_ip: null, user_agent: null, body_size: 0, received_at: Date.now(),
-        response_status: 200, duration_ms: 0
+        response_status: 200, response_body: '{"ok": true}', response_delay_ms: 0, duration_ms: 0
       });
     }
     db.trimRequests(endpoint.id, 500);
@@ -177,6 +177,19 @@ describe('custom responses', () => {
     const res = await request(app).post(`/${slug}`).send({});
     expect(res.headers['content-type']).toContain('text/plain');
     expect(res.text).toBe('plain text reply');
+  });
+
+  it('snapshots the response per request — changing settings later does not rewrite history', async () => {
+    const { slug } = await createUrl();
+    await request(app).post(`/${slug}`).send({ n: 1 });
+    await request(app).patch(`/api/urls/${slug}`).send({ responseStatus: 404, responseBody: '{"error": "gone"}' });
+    await request(app).post(`/${slug}`).send({ n: 2 });
+
+    const list = await request(app).get(`/api/urls/${slug}/requests`);
+    expect(list.body[0].responseStatus).toBe(404);
+    expect(list.body[0].responseBody).toBe('{"error": "gone"}');
+    expect(list.body[1].responseStatus).toBe(200);
+    expect(list.body[1].responseBody).toBe('{"ok": true}');
   });
 
   it('clamps the delay to 5 seconds', async () => {

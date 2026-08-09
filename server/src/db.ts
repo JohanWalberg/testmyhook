@@ -26,6 +26,8 @@ export interface RequestRow {
   body_size: number;
   received_at: number;
   response_status: number;
+  response_body: string;
+  response_delay_ms: number;
   duration_ms: number;
 }
 
@@ -82,6 +84,15 @@ export function createDb(path: string) {
   `);
   db.prepare('INSERT OR IGNORE INTO counters (key, value) VALUES (?, ?)').run('since', Date.now());
 
+  // Migrations for databases created before the per-request response snapshot.
+  const requestColumns = (db.prepare('PRAGMA table_info(requests)').all() as { name: string }[]).map(c => c.name);
+  if (!requestColumns.includes('response_body')) {
+    db.exec("ALTER TABLE requests ADD COLUMN response_body TEXT NOT NULL DEFAULT ''");
+  }
+  if (!requestColumns.includes('response_delay_ms')) {
+    db.exec('ALTER TABLE requests ADD COLUMN response_delay_ms INTEGER NOT NULL DEFAULT 0');
+  }
+
   return {
     createEndpoint(slug: string, now: number): EndpointRow {
       const info = db.prepare(
@@ -109,11 +120,13 @@ export function createDb(path: string) {
     insertRequest(r: Omit<RequestRow, 'id'>): RequestRow {
       const info = db.prepare(`
         INSERT INTO requests (endpoint_id, method, path, query_json, headers_json, raw_body,
-          content_type, source_ip, user_agent, body_size, received_at, response_status, duration_ms)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          content_type, source_ip, user_agent, body_size, received_at,
+          response_status, response_body, response_delay_ms, duration_ms)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         r.endpoint_id, r.method, r.path, r.query_json, r.headers_json, r.raw_body,
-        r.content_type, r.source_ip, r.user_agent, r.body_size, r.received_at, r.response_status, r.duration_ms
+        r.content_type, r.source_ip, r.user_agent, r.body_size, r.received_at,
+        r.response_status, r.response_body, r.response_delay_ms, r.duration_ms
       );
       return db.prepare('SELECT * FROM requests WHERE id = ?').get(Number(info.lastInsertRowid)) as RequestRow;
     },

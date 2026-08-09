@@ -24,6 +24,8 @@ export interface ApiRequest {
   bodySize: number;
   receivedAt: number;
   responseStatus: number;
+  responseBody: string;
+  responseDelayMs: number;
   durationMs: number;
 }
 

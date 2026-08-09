@@ -91,6 +91,8 @@ export function createReceiver(db: Db, hub: EventHub): Router {
       headers.push({ name: req.rawHeaders[i].toLowerCase(), value: req.rawHeaders[i + 1] });
     }
 
+    const delay = Math.min(Math.max(endpoint.response_delay_ms, 0), MAX_DELAY_MS);
+    const responseBody = endpoint.response_status === 204 ? '' : endpoint.response_body;
     const stored = db.insertRequest({
       endpoint_id: endpoint.id,
       method: req.method,
@@ -104,6 +106,8 @@ export function createReceiver(db: Db, hub: EventHub): Router {
       body_size: body.length,
       received_at: started,
       response_status: endpoint.response_status,
+      response_body: responseBody,
+      response_delay_ms: delay,
       duration_ms: Date.now() - started
     });
     db.trimRequests(endpoint.id, MAX_REQUESTS_PER_URL);
@@ -115,20 +119,19 @@ export function createReceiver(db: Db, hub: EventHub): Router {
 
     const send = () => {
       res.status(endpoint.response_status);
-      if (endpoint.response_status !== 204 && endpoint.response_body.length > 0) {
+      if (responseBody.length > 0) {
         let isJson = true;
         try {
-          JSON.parse(endpoint.response_body);
+          JSON.parse(responseBody);
         } catch {
           isJson = false;
         }
         res.setHeader('Content-Type', isJson ? 'application/json' : 'text/plain; charset=utf-8');
-        res.send(endpoint.response_body);
+        res.send(responseBody);
       } else {
         res.end();
       }
     };
-    const delay = Math.min(Math.max(endpoint.response_delay_ms, 0), MAX_DELAY_MS);
     if (delay > 0) setTimeout(send, delay);
     else send();
   });

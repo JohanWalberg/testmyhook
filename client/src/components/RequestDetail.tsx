@@ -1,19 +1,18 @@
 import { useRef, useState } from 'react';
-import type { ApiEndpoint, ApiRequest } from '../types';
+import type { ApiRequest } from '../types';
 import { api } from '../api';
 import { detailTime, formatSize, parsedJson, rawRequestText, statusFull, toCurl } from '../lib/format';
 import { JsonTree, type FoldSignal } from './JsonTree';
 
-type Tab = 'body' | 'headers' | 'query' | 'raw';
+type Tab = 'body' | 'headers' | 'query' | 'raw' | 'response';
 
 interface RequestDetailProps {
   request: ApiRequest;
   slug: string;
-  endpoint: ApiEndpoint;
   onDelete: () => void;
 }
 
-export function RequestDetail({ request, slug, endpoint, onDelete }: RequestDetailProps) {
+export function RequestDetail({ request, slug, onDelete }: RequestDetailProps) {
   const [tab, setTab] = useState<Tab>('body');
   const [copied, setCopied] = useState(false);
   const copyTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -50,7 +49,8 @@ export function RequestDetail({ request, slug, endpoint, onDelete }: RequestDeta
     { key: 'body', label: 'Body' },
     { key: 'headers', label: 'Headers', count: request.headers.length },
     { key: 'query', label: 'Query', count: request.query.length },
-    { key: 'raw', label: 'Raw' }
+    { key: 'raw', label: 'Raw' },
+    { key: 'response', label: 'Response' }
   ];
 
   return (
@@ -96,7 +96,7 @@ export function RequestDetail({ request, slug, endpoint, onDelete }: RequestDeta
       </div>
 
       <div style={{ flex: 1, padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 22, overflowY: 'auto', minHeight: 0 }}>
-        {tab === 'body' && <BodyTab request={request} endpoint={endpoint} slug={slug} />}
+        {tab === 'body' && <BodyTab request={request} slug={slug} />}
         {tab === 'headers' && <KvGrid label="Headers" rows={request.headers.map(h => [h.name, h.value])} />}
         {tab === 'query' && <KvGrid label="Query params" rows={request.query.map(q => [q.k, q.v])} />}
         {tab === 'raw' && (
@@ -107,12 +107,13 @@ export function RequestDetail({ request, slug, endpoint, onDelete }: RequestDeta
             {rawRequestText(request, window.location.host, slug)}
           </div>
         )}
+        {tab === 'response' && <ResponseTab request={request} />}
       </div>
     </div>
   );
 }
 
-function BodyTab({ request, endpoint, slug }: { request: ApiRequest; endpoint: ApiEndpoint; slug: string }) {
+function BodyTab({ request, slug }: { request: ApiRequest; slug: string }) {
   const parsed = parsedJson(request);
   const [fold, setFold] = useState<FoldSignal | undefined>(undefined);
   const foldAll = (open: boolean) => setFold(prev => ({ version: (prev?.version ?? 0) + 1, open }));
@@ -207,10 +208,10 @@ function BodyTab({ request, endpoint, slug }: { request: ApiRequest; endpoint: A
           <div className="mono" style={{ marginTop: 8, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)' }}>
             Response sent
           </div>
-          <div className="mono" style={{ fontSize: 12.5, color: 'var(--ink-2)', overflowWrap: 'anywhere' }}>
+          <div className="mono" style={{ fontSize: 12.5, color: 'var(--ink-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {statusFull(request.responseStatus)} ·{' '}
             <span style={{ color: 'var(--muted)' }}>
-              {request.responseStatus === 204 ? '(no body)' : endpoint.responseBody.replace(/\s+/g, ' ') || '(no body)'}
+              {request.responseBody.replace(/\s+/g, ' ') || '(no body)'}
             </span>
           </div>
         </div>
@@ -250,5 +251,64 @@ function KvGrid({ label, rows }: { label: string; rows: [string, string][] }) {
       <div className="mono" style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)' }}>{label}</div>
       <KvRows rows={rows} />
     </div>
+  );
+}
+
+/** What TestMyHook actually replied to the sender — snapshotted per request when it was received. */
+function ResponseTab({ request }: { request: ApiRequest }) {
+  let parsed: unknown | undefined;
+  if (request.responseBody) {
+    try {
+      parsed = JSON.parse(request.responseBody);
+    } catch {
+      parsed = undefined;
+    }
+  }
+  const contentType = request.responseBody === '' ? '—' : parsed !== undefined ? 'application/json' : 'text/plain';
+
+  return (
+    <>
+      <div style={{ display: 'flex', gap: 40, flexWrap: 'wrap' }}>
+        {[
+          ['Status', statusFull(request.responseStatus)],
+          ['Content type', contentType],
+          ['Configured delay', `${request.responseDelayMs} ms`],
+          ['Replied in', `${Math.max(request.durationMs, 1)} ms`]
+        ].map(([label, value]) => (
+          <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div className="mono" style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)' }}>{label}</div>
+            <div className="mono" style={{ fontSize: 13, color: request.responseStatus >= 400 && label === 'Status' ? 'var(--accent)' : 'var(--ink-2)' }}>
+              {value}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 9, overflow: 'hidden' }}>
+        <div
+          className="mono"
+          style={{
+            padding: '9px 14px', borderBottom: '1px solid var(--border-soft)',
+            fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)'
+          }}
+        >
+          Response body
+        </div>
+        <div className="mono" style={{ padding: '16px 18px 16px 24px', fontSize: 13, lineHeight: 1.85, color: 'var(--ink-2)', overflowX: 'auto' }}>
+          {parsed !== undefined ? (
+            <JsonTree key={request.id} value={parsed} />
+          ) : request.responseBody === '' ? (
+            <span style={{ color: 'var(--faint)' }}>(empty body)</span>
+          ) : (
+            <div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{request.responseBody}</div>
+          )}
+        </div>
+      </div>
+
+      <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: 'var(--muted-2)', maxWidth: 640 }}>
+        This is the exact response returned to the sender when the request arrived — changing the response settings later
+        does not rewrite history.
+      </p>
+    </>
   );
 }

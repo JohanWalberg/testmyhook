@@ -50,6 +50,8 @@ export interface ApiRequest {
   bodySize: number;
   receivedAt: number;
   responseStatus: number;
+  responseBody: string;
+  responseDelayMs: number;
   durationMs: number;
 }
 
@@ -87,6 +89,8 @@ export function serializeRequest(r: RequestRow, opts: { fullBody?: boolean } = {
     bodySize: r.body_size,
     receivedAt: r.received_at,
     responseStatus: r.response_status,
+    responseBody: r.response_body,
+    responseDelayMs: r.response_delay_ms,
     durationMs: r.duration_ms
   };
 }
