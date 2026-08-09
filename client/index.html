@@ -28,20 +28,35 @@
       rel="stylesheet"
     />
   </head>
+  <style>
+    /* Pre-app splash: calm background instantly; the crawler copy fades in only
+       if loading takes longer than a moment, so users never see it flash. */
+    .boot { min-height: 100vh; background: var(--canvas, #F4F1EA); color: var(--ink, #16130F); display: flex; align-items: center; justify-content: center; }
+    [data-theme='dark'] .boot { background: #14120F; color: #EDE7DB; }
+    .boot-inner { max-width: 640px; padding: 48px 24px; opacity: 0; animation: bootReveal 0.4s ease 1.5s forwards; }
+    @keyframes bootReveal { to { opacity: 1; } }
+    .boot-logo { font-family: 'JetBrains Mono', monospace; font-size: 19px; font-weight: 700; }
+    .boot-logo em { color: #C6421F; font-style: normal; }
+    [data-theme='dark'] .boot-logo em { color: #FF6B3D; }
+  </style>
   <body>
     <div id="root">
-      <!-- Static copy for crawlers and the pre-JS instant; React replaces this on load. -->
-      <main style="font-family: system-ui, sans-serif; max-width: 640px; margin: 0 auto; padding: 64px 24px; color: #16130f; background: #f4f1ea">
-        <h1>TestMyHook — see what a webhook sends</h1>
-        <p>
-          Free online webhook tester: open the site and you instantly get a live callback URL. Point any webhook or
-          callback at it — Shopify, Stripe, Slack, GitHub, PayPal, Jira or your own app — and inspect the request in
-          real time: headers, body and query parameters. Configure the response returned to the sender, share the
-          inbox with your team, and export everything as JSON. No account, no setup. URLs expire automatically.
-        </p>
-        <p><a href="/how">How to use</a> · <a href="/stats">Stats</a></p>
-      </main>
+      <!-- Static copy for crawlers; users see a branded splash and the text only on slow loads. -->
+      <div class="boot">
+        <main class="boot-inner" style="font-family: system-ui, sans-serif">
+          <p class="boot-logo"><em>&gt;</em> TestMyHook</p>
+          <h1>TestMyHook — see what a webhook sends</h1>
+          <p>
+            Free online webhook tester: open the site and you instantly get a live callback URL. Point any webhook or
+            callback at it — Shopify, Stripe, Slack, GitHub, PayPal, Jira or your own app — and inspect the request in
+            real time: headers, body and query parameters. Configure the response returned to the sender, share the
+            inbox with your team, and export everything as JSON. No account, no setup. URLs expire automatically.
+          </p>
+          <p><a href="/how">How to use</a> · <a href="/stats">Stats</a></p>
+        </main>
+      </div>
     </div>
+    <script>try{var t=localStorage.getItem('tmh.theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

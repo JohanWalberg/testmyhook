@@ -18,7 +18,8 @@ export function createApp(db: Db) {
     // fonts come from Google Fonts, everything else is same-origin.
     res.setHeader(
       'Content-Security-Policy',
-      "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+      "default-src 'self'; script-src 'self' 'sha256-+KgL3fLG+22uAFoY7ph8iwMjLQbQW0/Ospz6DseyhXM='; " +
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
         "font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; " +
         "object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
     );
