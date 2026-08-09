@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import type { ApiEndpoint, ApiRequest } from '../types';
 import { api } from '../api';
 import { detailTime, formatSize, parsedJson, rawRequestText, statusFull, toCurl } from '../lib/format';
-import { JsonTree } from './JsonTree';
+import { JsonTree, type FoldSignal } from './JsonTree';
 
 type Tab = 'body' | 'headers' | 'query' | 'raw';
 
@@ -114,6 +114,8 @@ export function RequestDetail({ request, slug, endpoint, onDelete }: RequestDeta
 
 function BodyTab({ request, endpoint, slug }: { request: ApiRequest; endpoint: ApiEndpoint; slug: string }) {
   const parsed = parsedJson(request);
+  const [fold, setFold] = useState<FoldSignal | undefined>(undefined);
+  const foldAll = (open: boolean) => setFold(prev => ({ version: (prev?.version ?? 0) + 1, open }));
   const rawText = request.bodyIsText ? request.body : `(binary body — base64)\n${request.body}`;
   const lineCount = parsed !== undefined
     ? JSON.stringify(parsed, null, 2).split('\n').length
@@ -166,6 +168,16 @@ function BodyTab({ request, endpoint, slug }: { request: ApiRequest; endpoint: A
             <span style={{ color: 'var(--faint)' }}>
               {request.bodyTruncated ? `showing first 128 kB of ${formatSize(request.bodySize)}` : `${lineCount} lines`}
             </span>
+            {parsed !== undefined && (
+              <>
+                <span className="hoverAccent" onClick={() => foldAll(false)} style={{ color: 'var(--muted)', userSelect: 'none' }}>
+                  COLLAPSE ALL
+                </span>
+                <span className="hoverAccent" onClick={() => foldAll(true)} style={{ color: 'var(--muted)', userSelect: 'none' }}>
+                  EXPAND ALL
+                </span>
+              </>
+            )}
             {request.body !== '' && (
               <span className="hoverAccent" onClick={downloadBody} style={{ color: 'var(--muted)', userSelect: 'none' }}>
                 DOWNLOAD
@@ -175,7 +187,7 @@ function BodyTab({ request, endpoint, slug }: { request: ApiRequest; endpoint: A
         </div>
         <div className="mono" style={{ padding: '16px 18px 16px 24px', fontSize: 13, lineHeight: 1.85, color: 'var(--ink-2)', overflowX: 'auto' }}>
           {parsed !== undefined ? (
-            <JsonTree key={request.id} value={parsed} />
+            <JsonTree key={request.id} value={parsed} fold={fold} />
           ) : rawText === '' ? (
             <span style={{ color: 'var(--faint)' }}>(empty body)</span>
           ) : (

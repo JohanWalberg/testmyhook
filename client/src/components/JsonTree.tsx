@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { inlineSpans, type CodeSpan } from '../lib/format';
 
 const SPAN_COLORS: Record<CodeSpan['kind'], string> = {
@@ -8,6 +8,12 @@ const SPAN_COLORS: Record<CodeSpan['kind'], string> = {
   num: 'var(--json-num)',
   lit: 'var(--json-num)'
 };
+
+/** Broadcast from the expand/collapse-all buttons; version bumps force every node to `open`. */
+export interface FoldSignal {
+  version: number;
+  open: boolean;
+}
 
 function Spans({ spans }: { spans: CodeSpan[] }) {
   return (
@@ -37,10 +43,13 @@ function Line({ indent, chevron, onToggle, children }: LineProps) {
     <div style={{ position: 'relative', paddingLeft: indent * 20, whiteSpace: 'pre' }}>
       {chevron && (
         <span
+          className="hoverAccent"
           onClick={onToggle}
+          title={chevron === '▾' ? 'Collapse section' : 'Expand section'}
           style={{
-            position: 'absolute', left: indent * 20 - 16, top: 0, width: 16,
-            color: 'var(--faint)', cursor: 'pointer', userSelect: 'none', fontSize: 10, lineHeight: '24px'
+            position: 'absolute', left: indent * 20 - 22, top: 0, width: 22, height: 24,
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            color: 'var(--muted)', cursor: 'pointer', userSelect: 'none', fontSize: 13
           }}
         >
           {chevron}
@@ -56,10 +65,15 @@ interface NodeProps {
   value: unknown;
   indent: number;
   last: boolean;
+  fold?: FoldSignal;
 }
 
-function Node({ k, value, indent, last }: NodeProps) {
+function Node({ k, value, indent, last, fold }: NodeProps) {
   const [open, setOpen] = useState(true);
+  useEffect(() => {
+    if (fold) setOpen(fold.open);
+  }, [fold?.version]);
+
   const comma = last ? '' : ',';
   const keySpans: CodeSpan[] =
     k !== null ? [{ text: JSON.stringify(k), kind: 'key' }, { text: ': ', kind: 'plain' }] : [];
@@ -93,12 +107,14 @@ function Node({ k, value, indent, last }: NodeProps) {
   if (!open) {
     return (
       <Line indent={indent} chevron="▸" onToggle={() => setOpen(true)}>
-        <Spans spans={keySpans} />
-        {openCh}
-        <span onClick={() => setOpen(true)} style={{ color: 'var(--faint)', cursor: 'pointer' }}>
-          {` … ${entries.length} ${isArray ? (entries.length === 1 ? 'item' : 'items') : entries.length === 1 ? 'key' : 'keys'} `}
+        <span onClick={() => setOpen(true)} style={{ cursor: 'pointer' }} title="Expand section">
+          <Spans spans={keySpans} />
+          {openCh}
+          <span style={{ color: 'var(--faint)' }}>
+            {` … ${entries.length} ${isArray ? (entries.length === 1 ? 'item' : 'items') : entries.length === 1 ? 'key' : 'keys'} `}
+          </span>
+          {closeCh + comma}
         </span>
-        {closeCh + comma}
       </Line>
     );
   }
@@ -106,11 +122,13 @@ function Node({ k, value, indent, last }: NodeProps) {
   return (
     <>
       <Line indent={indent} chevron="▾" onToggle={() => setOpen(false)}>
-        <Spans spans={keySpans} />
-        {openCh}
+        <span onClick={() => setOpen(false)} style={{ cursor: 'pointer' }} title="Collapse section">
+          <Spans spans={keySpans} />
+          {openCh}
+        </span>
       </Line>
       {entries.map(([childKey, childValue], i) => (
-        <Node key={childKey ?? i} k={childKey} value={childValue} indent={indent + 1} last={i === entries.length - 1} />
+        <Node key={childKey ?? i} k={childKey} value={childValue} indent={indent + 1} last={i === entries.length - 1} fold={fold} />
       ))}
       <Line indent={indent}>{closeCh + comma}</Line>
     </>
@@ -118,6 +136,6 @@ function Node({ k, value, indent, last }: NodeProps) {
 }
 
 /** Editor-style JSON viewer: syntax colors plus fold/unfold on every multi-line object and array. */
-export function JsonTree({ value }: { value: unknown }) {
-  return <Node k={null} value={value} indent={0} last />;
+export function JsonTree({ value, fold }: { value: unknown; fold?: FoldSignal }) {
+  return <Node k={null} value={value} indent={0} last fold={fold} />;
 }
