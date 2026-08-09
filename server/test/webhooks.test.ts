@@ -307,7 +307,25 @@ describe('operations', () => {
     expect(res.headers['content-security-policy']).toContain("frame-ancestors 'none'");
     expect(res.headers['x-frame-options']).toBe('DENY');
     expect(res.headers['referrer-policy']).toBe('no-referrer');
-    expect(res.headers['x-robots-tag']).toContain('noindex');
+  });
+
+  it('serves robots.txt and sitemap.xml, keeps API and webhooks unindexed', async () => {
+    const robots = await request(app).get('/robots.txt');
+    expect(robots.status).toBe(200);
+    expect(robots.text).toContain('Disallow: /view/');
+    expect(robots.text).toContain('/sitemap.xml');
+
+    const sitemap = await request(app).get('/sitemap.xml');
+    expect(sitemap.status).toBe(200);
+    expect(sitemap.text).toContain('/how');
+    expect(sitemap.text).toContain('/stats');
+
+    const apiRes = await request(app).get('/api/stats');
+    expect(apiRes.headers['x-robots-tag']).toContain('noindex');
+
+    const { slug } = await createUrl();
+    const hook = await request(app).post(`/${slug}`).send({});
+    expect(hook.headers['x-robots-tag']).toContain('noindex');
   });
 
   it('sends CORS headers on receiver responses so browser senders can read them', async () => {

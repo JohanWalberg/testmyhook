@@ -12,7 +12,6 @@ export function createApp(db: Db) {
   app.disable('x-powered-by');
 
   app.use((_req, res, next) => {
-    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     // The app displays attacker-controlled webhook payloads; lock down what a
     // page may load or do. Inline styles are required (React style props),
@@ -30,6 +29,21 @@ export function createApp(db: Db) {
 
   app.get('/healthz', (_req, res) => {
     res.json({ ok: true, uptime: Math.round(process.uptime()) });
+  });
+
+  // Public pages (/, /how, /stats) are indexable; robots.txt keeps crawlers
+  // out of shared-inbox links. Webhook slugs are unguessable and noindexed.
+  app.get('/robots.txt', (req, res) => {
+    const origin = `${req.protocol}://${req.get('host')}`;
+    res.type('text/plain').send(`User-agent: *\nDisallow: /view/\n\nSitemap: ${origin}/sitemap.xml\n`);
+  });
+
+  app.get('/sitemap.xml', (req, res) => {
+    const origin = `${req.protocol}://${req.get('host')}`;
+    const urls = ['/', '/how', '/stats']
+      .map(path => `  <url><loc>${origin}${path}</loc></url>`)
+      .join('\n');
+    res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`);
   });
 
   app.use('/api', createApi(db, hub));

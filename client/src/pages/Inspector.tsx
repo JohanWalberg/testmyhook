@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ApiEndpoint, ApiRequest } from '../types';
 import { api } from '../api';
 import { loadActiveSlug, loadSlugs, saveActiveSlug, saveSlugs, type Theme } from '../lib/storage';
+import { usePageMeta } from '../lib/meta';
 import { Sidebar } from '../components/Sidebar';
 import { EmptyHero } from '../components/EmptyHero';
 import { RequestDetail } from '../components/RequestDetail';
@@ -12,6 +13,7 @@ interface InspectorProps {
 }
 
 export function Inspector({ theme, onToggleTheme }: InspectorProps) {
+  usePageMeta();
   const [slugs, setSlugs] = useState<string[]>([]);
   const [active, setActive] = useState<string | null>(null);
   const [endpoint, setEndpoint] = useState<ApiEndpoint | null>(null);

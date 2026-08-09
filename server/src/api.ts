@@ -25,6 +25,10 @@ function endpointOr404(db: Db, req: Request, res: Response): EndpointRow | undef
 export function createApi(db: Db, hub: EventHub): Router {
   const router = express.Router();
   const createLimiter = new RateLimiter(30, 60_000);
+  router.use((_req, res, next) => {
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    next();
+  });
   router.use(express.json({ limit: '64kb' }));
 
   function freshSlug(): string {

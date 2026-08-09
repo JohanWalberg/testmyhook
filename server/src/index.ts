@@ -24,7 +24,9 @@ if (existsSync(clientDist)) {
   // Hashed assets can cache forever; index.html must revalidate so users
   // see new deploys without a hard refresh.
   app.use(express.static(clientDist, { index: false, maxAge: '1y', immutable: true }));
+  const INDEXABLE_PAGES = new Set(['/', '/how', '/stats']);
   app.get(/^\/(?!api\b).*/, (req, res) => {
+    if (!INDEXABLE_PAGES.has(req.path)) res.setHeader('X-Robots-Tag', 'noindex, nofollow');
     if (req.path === '/') {
       db.bumpCounter('page_visits');
       const location = coarseLocation(req.ip ?? null);

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Logo } from '../components/Logo';
 import { CodeBlock, Prompt } from '../components/CodeBlock';
 import { loadSlugs } from '../lib/storage';
+import { usePageMeta } from '../lib/meta';
 
 const STEPS = [
   {
@@ -30,6 +31,7 @@ const FACTS = [
 
 export function Docs() {
   const navigate = useNavigate();
+  usePageMeta('How to use', 'How to test a webhook with TestMyHook: copy your live callback URL, send any request, inspect headers, body and query params, and control the response.');
   // Show the visitor's own URL in the examples when they have one.
   const slug = loadSlugs()[0] ?? 'tiny-snow-k4d92h';
   const target = `${window.location.origin}/${slug}/orders`;

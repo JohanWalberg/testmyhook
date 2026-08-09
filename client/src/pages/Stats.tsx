@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Logo } from '../components/Logo';
 import { WorldMap, type GeoPoint } from '../components/WorldMap';
 import { formatSize } from '../lib/format';
+import { usePageMeta } from '../lib/meta';
 
 interface StatsPayload {
   since: number;
@@ -20,6 +21,7 @@ function formatCount(n: number): string {
 }
 
 export function Stats() {
+  usePageMeta('Stats', 'Live usage numbers for TestMyHook: URLs created, webhooks received, data stored, and a world map of where activity comes from.');
   const [stats, setStats] = useState<StatsPayload | null>(null);
   const navigate = useNavigate();
 

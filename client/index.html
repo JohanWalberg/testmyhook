@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="robots" content="noindex, nofollow" />
     <title>TestMyHook — see what a webhook sends</title>
     <meta
       name="description"
@@ -30,7 +29,19 @@
     />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Static copy for crawlers and the pre-JS instant; React replaces this on load. -->
+      <main style="font-family: system-ui, sans-serif; max-width: 640px; margin: 0 auto; padding: 64px 24px; color: #16130f; background: #f4f1ea">
+        <h1>TestMyHook — see what a webhook sends</h1>
+        <p>
+          Free online webhook tester: open the site and you instantly get a live callback URL. Point any webhook or
+          callback at it — Shopify, Stripe, Slack, GitHub, PayPal, Jira or your own app — and inspect the request in
+          real time: headers, body and query parameters. Configure the response returned to the sender, share the
+          inbox with your team, and export everything as JSON. No account, no setup. URLs expire automatically.
+        </p>
+        <p><a href="/how">How to use</a> · <a href="/stats">Stats</a></p>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
