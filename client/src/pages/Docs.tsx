@@ -72,7 +72,7 @@ export function Docs() {
           </CodeBlock>
         </div>
 
-        <div style={{ display: 'flex', gap: 56, paddingTop: 8, borderTop: '1px solid var(--border)', flexWrap: 'wrap' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '8px 56px', paddingTop: 8, borderTop: '1px solid var(--border)' }}>
           {FACTS.map(fact => (
             <div key={fact.label} style={{ display: 'flex', flexDirection: 'column', gap: 6, paddingTop: 20 }}>
               <div className="mono" style={{ fontSize: 12, color: 'var(--muted)' }}>{fact.label}</div>
