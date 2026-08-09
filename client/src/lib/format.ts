@@ -69,7 +69,7 @@ export interface CodeLine {
 
 const INLINE_LIMIT = 44;
 
-function inlineSpans(value: unknown): CodeSpan[] | null {
+export function inlineSpans(value: unknown): CodeSpan[] | null {
   const compact = JSON.stringify(value);
   if (compact === undefined || compact.length > INLINE_LIMIT) return null;
   const spans: CodeSpan[] = [];

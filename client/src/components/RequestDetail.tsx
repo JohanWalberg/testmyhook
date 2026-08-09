@@ -1,15 +1,8 @@
 import { useRef, useState } from 'react';
 import type { ApiEndpoint, ApiRequest } from '../types';
 import { api } from '../api';
-import { detailTime, formatSize, jsonToLines, parsedJson, rawRequestText, statusFull, toCurl, type CodeLine } from '../lib/format';
-
-const SPAN_COLORS: Record<string, string> = {
-  plain: 'inherit',
-  key: 'var(--json-key)',
-  str: 'var(--json-str)',
-  num: 'var(--json-num)',
-  lit: 'var(--json-num)'
-};
+import { detailTime, formatSize, parsedJson, rawRequestText, statusFull, toCurl } from '../lib/format';
+import { JsonTree } from './JsonTree';
 
 type Tab = 'body' | 'headers' | 'query' | 'raw';
 
@@ -121,9 +114,10 @@ export function RequestDetail({ request, slug, endpoint, onDelete }: RequestDeta
 
 function BodyTab({ request, endpoint, slug }: { request: ApiRequest; endpoint: ApiEndpoint; slug: string }) {
   const parsed = parsedJson(request);
-  const lines: CodeLine[] | null = parsed !== undefined ? jsonToLines(parsed) : null;
   const rawText = request.bodyIsText ? request.body : `(binary body — base64)\n${request.body}`;
-  const lineCount = lines ? lines.length : rawText === '' ? 0 : rawText.split('\n').length;
+  const lineCount = parsed !== undefined
+    ? JSON.stringify(parsed, null, 2).split('\n').length
+    : rawText === '' ? 0 : rawText.split('\n').length;
   const cardLabel = request.contentType ?? (request.body === '' ? 'no body' : 'unknown');
 
   const downloadBody = async () => {
@@ -179,15 +173,9 @@ function BodyTab({ request, endpoint, slug }: { request: ApiRequest; endpoint: A
             )}
           </span>
         </div>
-        <div className="mono" style={{ padding: '16px 18px', fontSize: 13, lineHeight: 1.85, color: 'var(--ink-2)', overflowX: 'auto' }}>
-          {lines ? (
-            lines.map((line, i) => (
-              <div key={i} style={{ paddingLeft: line.indent * 20, whiteSpace: 'pre' }}>
-                {line.spans.map((span, j) => (
-                  <span key={j} style={{ color: SPAN_COLORS[span.kind] }}>{span.text}</span>
-                ))}
-              </div>
-            ))
+        <div className="mono" style={{ padding: '16px 18px 16px 24px', fontSize: 13, lineHeight: 1.85, color: 'var(--ink-2)', overflowX: 'auto' }}>
+          {parsed !== undefined ? (
+            <JsonTree key={request.id} value={parsed} />
           ) : rawText === '' ? (
             <span style={{ color: 'var(--faint)' }}>(empty body)</span>
           ) : (
