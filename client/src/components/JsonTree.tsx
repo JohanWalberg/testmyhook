@@ -60,16 +60,24 @@ function Line({ indent, chevron, onToggle, children }: LineProps) {
   );
 }
 
+/** Decides whether a section starts collapsed (big-payload mode). */
+export type InitialFold = (indent: number, childCount: number) => boolean;
+
 interface NodeProps {
   k: string | null;
   value: unknown;
   indent: number;
   last: boolean;
   fold?: FoldSignal;
+  initialFold?: InitialFold;
 }
 
-function Node({ k, value, indent, last, fold }: NodeProps) {
-  const [open, setOpen] = useState(true);
+function Node({ k, value, indent, last, fold, initialFold }: NodeProps) {
+  const childCount =
+    value !== null && typeof value === 'object'
+      ? (Array.isArray(value) ? value.length : Object.keys(value as object).length)
+      : 0;
+  const [open, setOpen] = useState(() => !(initialFold?.(indent, childCount) ?? false));
   useEffect(() => {
     // Collapse-all folds nested sections but keeps the root open, so the
     // top-level keys stay visible as an overview.
@@ -130,7 +138,7 @@ function Node({ k, value, indent, last, fold }: NodeProps) {
         </span>
       </Line>
       {entries.map(([childKey, childValue], i) => (
-        <Node key={childKey ?? i} k={childKey} value={childValue} indent={indent + 1} last={i === entries.length - 1} fold={fold} />
+        <Node key={childKey ?? i} k={childKey} value={childValue} indent={indent + 1} last={i === entries.length - 1} fold={fold} initialFold={initialFold} />
       ))}
       <Line indent={indent}>{closeCh + comma}</Line>
     </>
@@ -138,6 +146,6 @@ function Node({ k, value, indent, last, fold }: NodeProps) {
 }
 
 /** Editor-style JSON viewer: syntax colors plus fold/unfold on every multi-line object and array. */
-export function JsonTree({ value, fold }: { value: unknown; fold?: FoldSignal }) {
-  return <Node k={null} value={value} indent={0} last fold={fold} />;
+export function JsonTree({ value, fold, initialFold }: { value: unknown; fold?: FoldSignal; initialFold?: InitialFold }) {
+  return <Node k={null} value={value} indent={0} last fold={fold} initialFold={initialFold} />;
 }

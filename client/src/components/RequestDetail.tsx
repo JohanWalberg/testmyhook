@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ApiRequest } from '../types';
 import { api } from '../api';
-import { detailTime, formatSize, methodColor, parsedJson, rawRequestText, statusFull, toCurl, toFetch } from '../lib/format';
+import { detailTime, formatSize, jsonToLines, methodColor, rawRequestText, statusFull, toCurl, toFetch, type CodeLine } from '../lib/format';
 import { JsonTree, type FoldSignal } from './JsonTree';
 
 type Tab = 'body' | 'headers' | 'query' | 'raw' | 'response';
@@ -125,11 +125,67 @@ export function RequestDetail({ request, slug, onDelete, onBack }: RequestDetail
   );
 }
 
+const JSON_SPAN_COLORS: Record<string, string> = {
+  plain: 'var(--ink-2)', key: 'var(--json-key)', str: 'var(--json-str)', num: 'var(--json-num)', lit: 'var(--json-num)'
+};
+
+/** Lightweight, fully-open JSON view for large payloads: flat colored lines, no per-node React state (the folding tree freezes past a few thousand nodes). */
+function FlatJson({ value }: { value: unknown }) {
+  const lines: CodeLine[] = jsonToLines(value);
+  return (
+    <>
+      {lines.map((line, i) => (
+        <div key={i} style={{ paddingLeft: line.indent * 20, whiteSpace: 'pre' }}>
+          {line.spans.map((sp, j) => (
+            <span key={j} style={{ color: JSON_SPAN_COLORS[sp.kind] }}>{sp.text}</span>
+          ))}
+        </div>
+      ))}
+    </>
+  );
+}
+
+function tryParse(text: string): unknown | undefined {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return undefined;
+  }
+}
+
+// Payloads at least this large open with big sections pre-collapsed so the
+// folding tree stays fast and readable instead of rendering thousands of lines.
+const BIG_BODY_BYTES = 24_576;
+
 function BodyTab({ request, slug }: { request: ApiRequest; slug: string }) {
-  const parsed = parsedJson(request);
   const [fold, setFold] = useState<FoldSignal | undefined>(undefined);
   const foldAll = (open: boolean) => setFold(prev => ({ version: (prev?.version ?? 0) + 1, open }));
-  const rawText = request.bodyIsText ? request.body : `(binary body — base64)\n${request.body}`;
+
+  // For truncated bodies, fetch the full untruncated version so the viewer
+  // shows and folds the complete payload — not the mid-JSON raw fallback.
+  const [fullBody, setFullBody] = useState<string | null>(null);
+  useEffect(() => {
+    setFullBody(null);
+    if (!request.bodyTruncated) return;
+    let cancelled = false;
+    api.getRequest(slug, request.id)
+      .then(r => {
+        if (!cancelled && r.bodyIsText) setFullBody(r.body);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [request.id, request.bodyTruncated, slug]);
+
+  const displayBody = fullBody ?? request.body;
+  const bodyIsText = request.bodyIsText;
+  const parsed = bodyIsText && displayBody.trim() !== '' ? tryParse(displayBody) : undefined;
+  const stillTruncated = request.bodyTruncated && fullBody === null;
+  const isBig = request.bodySize >= BIG_BODY_BYTES;
+  const useFlat = parsed !== undefined && isBig; // big payloads: flat, fully open, no freeze
+
+  const rawText = bodyIsText ? displayBody : `(binary body — base64)\n${displayBody}`;
   const lineCount = parsed !== undefined
     ? JSON.stringify(parsed, null, 2).split('\n').length
     : rawText === '' ? 0 : rawText.split('\n').length;
@@ -181,9 +237,9 @@ function BodyTab({ request, slug }: { request: ApiRequest; slug: string }) {
           <span>{cardLabel}</span>
           <span style={{ display: 'flex', gap: 16, alignItems: 'baseline' }}>
             <span style={{ color: 'var(--faint)' }}>
-              {request.bodyTruncated ? `showing first 128 kB of ${formatSize(request.bodySize)}` : `${lineCount} lines`}
+              {stillTruncated ? `loading ${formatSize(request.bodySize)}…` : `${lineCount} lines`}
             </span>
-            {parsed !== undefined && (
+            {parsed !== undefined && !useFlat && (
               <>
                 <span className="hoverAccent" onClick={() => foldAll(false)} style={{ color: 'var(--muted)', userSelect: 'none' }}>
                   COLLAPSE ALL
@@ -202,7 +258,13 @@ function BodyTab({ request, slug }: { request: ApiRequest; slug: string }) {
         </div>
         <div className="mono" style={{ padding: '16px 18px 16px 24px', fontSize: 13, lineHeight: 1.85, color: 'var(--ink-2)', overflowX: 'auto' }}>
           {parsed !== undefined ? (
-            <JsonTree key={request.id} value={parsed} fold={fold} />
+            useFlat ? (
+              <FlatJson key={`${request.id}-${fullBody !== null}`} value={parsed} />
+            ) : (
+              <JsonTree key={`${request.id}-${fullBody !== null}`} value={parsed} fold={fold} />
+            )
+          ) : stillTruncated ? (
+            <span style={{ color: 'var(--faint)' }}>Loading full payload…</span>
           ) : rawText === '' ? (
             <span style={{ color: 'var(--faint)' }}>(empty body)</span>
           ) : (
