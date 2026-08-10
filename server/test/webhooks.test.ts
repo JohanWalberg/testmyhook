@@ -458,6 +458,43 @@ describe('geo aggregation', () => {
   });
 });
 
+describe('admin API', () => {
+  it('is disabled (404) when ADMIN_TOKEN is unset', async () => {
+    delete process.env.ADMIN_TOKEN;
+    expect((await request(app).get('/api/admin/overview')).status).toBe(404);
+  });
+
+  it('rejects wrong tokens and serves cross-URL data with the right one', async () => {
+    process.env.ADMIN_TOKEN = 'test-secret';
+    try {
+      expect((await request(app).get('/api/admin/overview')).status).toBe(401);
+      expect((await request(app).get('/api/admin/overview').set('Authorization', 'Bearer nope')).status).toBe(401);
+
+      const a = await createUrl();
+      const b = await createUrl();
+      await request(app).post(`/${a.slug}/one`).send({ n: 1 });
+      await request(app).post(`/${b.slug}/two`).send({ n: 2 });
+
+      const overview = await request(app).get('/api/admin/overview').set('Authorization', 'Bearer test-secret');
+      expect(overview.status).toBe(200);
+      expect(overview.body.endpoints).toHaveLength(2);
+
+      const recent = await request(app).get('/api/admin/requests?hours=1').set('Authorization', 'Bearer test-secret');
+      expect(recent.status).toBe(200);
+      expect(recent.body).toHaveLength(2);
+      const slugs = recent.body.map((r: { slug: string }) => r.slug).sort();
+      expect(slugs).toEqual([a.slug, b.slug].sort());
+
+      await request(app).post('/api/feedback').send({ mood: 4, text: 'admin test' });
+      const fb = await request(app).get('/api/admin/feedback').set('Authorization', 'Bearer test-secret');
+      expect(fb.body).toHaveLength(1);
+      expect(fb.body[0].text).toBe('admin test');
+    } finally {
+      delete process.env.ADMIN_TOKEN;
+    }
+  });
+});
+
 describe('feedback', () => {
   it('stores feedback and succeeds without SMTP configured', async () => {
     const res = await request(app).post('/api/feedback').send({ mood: 5, text: 'love it', email: 'nina@example.com' });

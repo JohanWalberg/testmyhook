@@ -6,6 +6,7 @@ import { newSlug, SLUG_PATTERN } from './slugs.js';
 import { serializeEndpoint, serializeRequest } from './serialize.js';
 import { RateLimiter } from './ratelimit.js';
 import { sendFeedbackMail } from './mailer.js';
+import { timingSafeEqual } from 'node:crypto';
 
 const MAX_RESPONSE_BODY = 16_384;
 const MAX_DELAY_MS = 5_000;
@@ -76,6 +77,41 @@ export function createApi(db: Db, hub: EventHub): Router {
     db.insertFeedback(mood, text, email, Date.now());
     const mailed = await sendFeedbackMail({ mood, text, email });
     res.status(201).json({ ok: true, mailed });
+  });
+
+  // Owner-only admin reads, enabled by setting ADMIN_TOKEN in the environment.
+  // Off (404) when unset; token compared in constant time.
+  const adminAuth = (req: Request, res: Response): boolean => {
+    const token = process.env.ADMIN_TOKEN;
+    if (!token) {
+      res.status(404).json({ error: 'not_found' });
+      return false;
+    }
+    const given = (req.headers.authorization ?? '').replace(/^Bearer /, '');
+    const a = Buffer.from(given);
+    const b = Buffer.from(token);
+    if (a.length !== b.length || !timingSafeEqual(a, b)) {
+      res.status(401).json({ error: 'unauthorized' });
+      return false;
+    }
+    return true;
+  };
+
+  router.get('/admin/overview', (req, res) => {
+    if (!adminAuth(req, res)) return;
+    res.json({ endpoints: db.listEndpointsOverview() });
+  });
+
+  router.get('/admin/requests', (req, res) => {
+    if (!adminAuth(req, res)) return;
+    const hours = clampInt(req.query.hours, 1, 24 * 30, 24);
+    const rows = db.listRecentRequestsAcrossEndpoints(Date.now() - hours * 3_600_000);
+    res.json(rows.map(r => ({ slug: r.slug, ...serializeRequest(r) })));
+  });
+
+  router.get('/admin/feedback', (req, res) => {
+    if (!adminAuth(req, res)) return;
+    res.json(db.listFeedback());
   });
 
   // Public usage stats for the /stats page

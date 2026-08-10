@@ -243,6 +243,27 @@ export function createDb(path: string) {
       db.prepare('UPDATE geo SET country = ? WHERE lat = ? AND lon = ?').run(country, lat, lon);
     },
 
+    listEndpointsOverview(): { slug: string; created_at: number; last_activity_at: number; requests: number; bytes: number }[] {
+      return db.prepare(`
+        SELECT e.slug, e.created_at, e.last_activity_at,
+               COUNT(r.id) AS requests, COALESCE(SUM(r.body_size), 0) AS bytes
+        FROM endpoints e LEFT JOIN requests r ON r.endpoint_id = e.id
+        GROUP BY e.id ORDER BY e.last_activity_at DESC
+      `).all() as unknown as { slug: string; created_at: number; last_activity_at: number; requests: number; bytes: number }[];
+    },
+
+    listRecentRequestsAcrossEndpoints(sinceMs: number, limit = 200): (RequestRow & { slug: string })[] {
+      return db.prepare(`
+        SELECT r.*, e.slug FROM requests r JOIN endpoints e ON e.id = r.endpoint_id
+        WHERE r.received_at >= ? ORDER BY r.id DESC LIMIT ?
+      `).all(sinceMs, limit) as unknown as (RequestRow & { slug: string })[];
+    },
+
+    listFeedback(limit = 200): { id: number; mood: number; text: string; email: string; created_at: number }[] {
+      return db.prepare('SELECT * FROM feedback ORDER BY id DESC LIMIT ?').all(limit) as unknown as
+        { id: number; mood: number; text: string; email: string; created_at: number }[];
+    },
+
     insertFeedback(mood: number, text: string, email: string, now: number): void {
       db.prepare('INSERT INTO feedback (mood, text, email, created_at) VALUES (?, ?, ?, ?)').run(mood, text, email, now);
     },
